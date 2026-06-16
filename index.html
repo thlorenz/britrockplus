@@ -54,6 +54,12 @@
   .watch-toggle input { accent-color:#6ee7a0; width:18px; height:18px; cursor:pointer; margin:0; }
   .card.watched .thumb img { filter:grayscale(1) brightness(.6); }
   .card.watched .watch-toggle { background:rgba(40,90,55,.85); color:#bff0cf; }
+  /* playlist plus/minus button */
+  .playlist-toggle { position:absolute; top:8px; left:8px; z-index:3; width:30px; height:30px; border:none; border-radius:6px; background:rgba(0,0,0,.65); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:22px; line-height:1; padding:0; transition:background .15s, transform .15s; }
+  .playlist-toggle:hover { transform:scale(1.1); }
+  .playlist-toggle::before { content:"+"; }
+  .card.in-playlist .playlist-toggle { background:rgba(255,90,54,.92); }
+  .card.in-playlist .playlist-toggle::before { content:"\2212"; }
   /* filter bar */
   .filterbar { display:flex; gap:10px; align-items:center; justify-content:center; margin-top:18px; flex-wrap:wrap; }
   .filterbar .fbtn { background:var(--card); color:var(--muted); border:1px solid #2a3040; padding:7px 16px; border-radius:20px; cursor:pointer; font-size:14px; }
@@ -62,6 +68,7 @@
   .filterbar .stats { color:var(--muted); font-size:13px; margin-left:6px; }
   main[data-filter="watched"] .card:not(.watched) { display:none; }
   main[data-filter="unwatched"] .card.watched { display:none; }
+  main[data-filter="playlist"] .card:not(.in-playlist) { display:none; }
   .body { padding:14px; display:flex; flex-direction:column; gap:8px; }
   .body h3 { margin:0; font-size:17px; }
   .short { margin:0; color:var(--muted); font-size:14px; }
@@ -79,6 +86,7 @@
     <button class="fbtn active" data-filter="all">All</button>
     <button class="fbtn" data-filter="watched">Watched</button>
     <button class="fbtn" data-filter="unwatched">Unwatched</button>
+    <button class="fbtn" data-filter="playlist">Playlist</button>
     <span class="stats" id="stats"></span>
   </div>
   <nav class="toc">
@@ -1602,26 +1610,29 @@
     });
   });
 
-  // ---- Watched tracking (persisted in localStorage) ----
+  // ---- Watched & playlist tracking (persisted in localStorage) ----
   const STORE_KEY = 'britrock-watched';
+  const PLAYLIST_KEY = 'britrock-playlist';
   const main = document.querySelector('main');
   const cards = [...document.querySelectorAll('.card')];
   const stats = document.getElementById('stats');
 
-  function loadWatched() {
-    try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); }
+  function loadStore(key) {
+    try { return JSON.parse(localStorage.getItem(key) || '{}'); }
     catch { return {}; }
   }
-  function saveWatched(state) {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch {}
+  function saveStore(key, state) {
+    try { localStorage.setItem(key, JSON.stringify(state)); } catch {}
   }
 
-  let watched = loadWatched();
+  let watched = loadStore(STORE_KEY);
+  let playlist = loadStore(PLAYLIST_KEY);
 
   function updateStats() {
     const total = cards.length;
     const seen = cards.filter(c => c.classList.contains('watched')).length;
-    stats.textContent = `${seen} / ${total} watched`;
+    const inList = cards.filter(c => c.classList.contains('in-playlist')).length;
+    stats.textContent = `${seen} / ${total} watched \u00b7 ${inList} in playlist`;
   }
 
   cards.forEach(card => {
@@ -1641,10 +1652,30 @@
     cb.addEventListener('change', () => {
       card.classList.toggle('watched', cb.checked);
       if (cb.checked) watched[id] = true; else delete watched[id];
-      saveWatched(watched);
+      saveStore(STORE_KEY, watched);
       updateStats();
     });
-    card.querySelector('.thumb').appendChild(label);
+
+    // playlist plus/minus button
+    const inPlaylist = !!playlist[id];
+    card.classList.toggle('in-playlist', inPlaylist);
+    const plBtn = document.createElement('button');
+    plBtn.className = 'playlist-toggle';
+    plBtn.type = 'button';
+    plBtn.title = 'Add to playlist';
+    plBtn.setAttribute('aria-label', 'Toggle playlist');
+    plBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const nowIn = !card.classList.contains('in-playlist');
+      card.classList.toggle('in-playlist', nowIn);
+      if (nowIn) playlist[id] = true; else delete playlist[id];
+      saveStore(PLAYLIST_KEY, playlist);
+      updateStats();
+    });
+
+    const thumb = card.querySelector('.thumb');
+    thumb.appendChild(label);
+    thumb.appendChild(plBtn);
   });
 
   // ---- Filter buttons ----
