@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BritRock+ Catalogue</title>
+<style>
+  :root { --bg:#0d0f14; --card:#161a23; --fg:#e8eaf0; --muted:#9aa3b2; --accent:#ff5a36; }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  header.top { padding:28px 20px; text-align:center; background:linear-gradient(180deg,#1a1f2b,transparent); }
+  header.top h1 { margin:0; font-size:34px; letter-spacing:1px; }
+  header.top p { color:var(--muted); margin:6px 0 0; }
+  main { max-width:1280px; margin:0 auto; padding:0 16px 60px; }
+  section { margin-top:42px; scroll-margin-top:16px; }
+  .card { scroll-margin-top:16px; }
+  .section-title, .season h2 { font-size:24px; margin:0 0 16px; }
+  /* TOC */
+  nav.toc { background:var(--card); border-radius:14px; padding:20px 22px; margin-top:24px; }
+  nav.toc summary { cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px; }
+  nav.toc summary::-webkit-details-marker { display:none; }
+  nav.toc summary::before { content:"\25B6"; color:var(--accent); font-size:13px; transition:transform .15s; }
+  nav.toc details[open] summary::before { transform:rotate(90deg); }
+  nav.toc summary h2 { display:inline; margin:0; font-size:20px; }
+  nav.toc .toc-cols { margin-top:14px; }
+  .toc-cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px 28px; }
+  .toc-group h3 { margin:0 0 8px; font-size:16px; border-bottom:1px solid #2a3040; padding-bottom:6px; }
+  .toc-group h3 a { color:var(--accent); text-decoration:none; }
+  .toc-group .count { color:var(--muted); font-weight:400; font-size:13px; }
+  .toc-group ul { list-style:none; margin:0; padding:0; }
+  .toc-group li { margin:2px 0; }
+  .toc-group li a { color:var(--muted); text-decoration:none; font-size:14px; }
+  .toc-group li a:hover { color:var(--fg); }
+  /* season hero */
+  .season-hero { position:relative; height:200px; border-radius:14px; background-image:var(--cover); background-size:cover; background-position:center; background-color:#222838; display:flex; align-items:flex-end; padding:18px; margin-bottom:10px; }
+  .season-hero::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent,rgba(0,0,0,.8)); border-radius:14px; }
+  .season-hero h2 { position:relative; z-index:1; margin:0; font-size:28px; text-shadow:0 2px 10px #000; }
+  .season-desc { margin:0 0 18px; color:var(--muted); }
+  .season-desc summary { cursor:pointer; color:var(--fg); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; }
+  .card { background:var(--card); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 4px 16px rgba(0,0,0,.3); }
+  .thumb { position:relative; aspect-ratio:16/9; background:linear-gradient(135deg,#1d2330,#2a3142); }
+  /* placeholder shown when image not (yet) loaded or offline */
+  .thumb .ph { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:10px; font-size:15px; font-weight:600; color:#aeb6c6; }
+  .thumb img { position:relative; width:100%; height:100%; object-fit:cover; display:block; }
+  .thumb img.failed { display:none; }
+  .play { position:absolute; inset:0; margin:auto; width:64px; height:64px; border:none; border-radius:50%; background:rgba(255,90,54,.92); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .15s, background .15s; z-index:2; }
+  .play:hover { transform:scale(1.1); background:var(--accent); }
+  .play svg { width:30px; height:30px; fill:#fff; margin-left:3px; }
+  .badge.free { display:none; }
+  /* watched checkbox */
+  .watch-toggle { position:absolute; top:8px; right:8px; z-index:3; display:flex; align-items:center; background:rgba(0,0,0,.65); padding:5px; border-radius:6px; cursor:pointer; user-select:none; }
+  .watch-toggle input { accent-color:#6ee7a0; width:18px; height:18px; cursor:pointer; margin:0; }
+  .card.watched .thumb img { filter:grayscale(1) brightness(.6); }
+  .card.watched .watch-toggle { background:rgba(40,90,55,.85); color:#bff0cf; }
+  /* filter bar */
+  .filterbar { display:flex; gap:10px; align-items:center; justify-content:center; margin-top:18px; flex-wrap:wrap; }
+  .filterbar .fbtn { background:var(--card); color:var(--muted); border:1px solid #2a3040; padding:7px 16px; border-radius:20px; cursor:pointer; font-size:14px; }
+  .filterbar .fbtn:hover { color:var(--fg); }
+  .filterbar .fbtn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .filterbar .stats { color:var(--muted); font-size:13px; margin-left:6px; }
+  main[data-filter="watched"] .card:not(.watched) { display:none; }
+  main[data-filter="unwatched"] .card.watched { display:none; }
+  .body { padding:14px; display:flex; flex-direction:column; gap:8px; }
+  .body h3 { margin:0; font-size:17px; }
+  .short { margin:0; color:var(--muted); font-size:14px; }
+  details summary { cursor:pointer; color:var(--accent); font-size:14px; }
+  details p { color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>BritRock+ Catalogue</h1>
+  <p>107 titles &middot; click Play to open the full film on the BritRock+ player</p>
+</header>
+<main data-filter="all">
+  <div class="filterbar">
+    <button class="fbtn active" data-filter="all">All</button>
+    <button class="fbtn" data-filter="watched">Watched</button>
+    <button class="fbtn" data-filter="unwatched">Unwatched</button>
+    <span class="stats" id="stats"></span>
+  </div>
+  <nav class="toc">
+   <details>
+    <summary><h2>Contents</h2></summary>
+    <div class="toc-cols">
+      <div class="toc-group">
+        <h3><a href="#sec-108">BritRock Season 7 Package</a> <span class="count">(8)</span></h3>
+        <ul>
+        <li><a href="#m116">Extra Stars - E8 On Sight Uncut</a></li>
+        <li><a href="#m111">Extra Stars - Dalriada</a></li>
+        <li><a href="#m109">Little Wings</a></li>
+        <li><a href="#m113">Extra Stars - Shelterstone</a></li>
+        <li><a href="#m114">Extra Stars - Booby Prize Direct</a></li>
+        <li><a href="#m110">Trad Stars</a></li>
+        <li><a href="#m112">Extra Stars - Steve McClure</a></li>
+        <li><a href="#m115">Extra Stars - E9 Ground Up</a></li>
+        </ul>
+      </div>
+      <div class="toc-group">
+        <h3><a href="#sec-42">BritRock Season 6 Package</a> <span class="count">(2)</span></h3>
+        <ul>
+        <li><a href="#m9">Freja&#x27;s Back</a></li>
+        <li><a href="#m8">Climbing Blind II</a></li>
+        </ul>
+      </div>
+      <div class="toc-group">
+        <h3><a href="#sec-19">BritRock Season 5 Package</a> <span class="count">(5)</span></h3>
+        <ul>
+        <li><a href="#m18">Goddess of Craic</a></li>
+        <li><a href="#m13">Headjam</a></li>
+        <li><a href="#m12">Hard Git</a></li>
+        <li><a href="#m11">Helmcken Falls</a></li>
+        <li><a href="#m10">Shining Stones</a></li>
+        </ul>
+      </div>
+      <div class="toc-group">
+        <h3><a href="#sec-individual">Individual Films</a> <span class="count">(89)</span></h3>
+        <ul>
+        <li><a href="#m117">Blind as a Bat</a></li>
+        <li><a href="#m107">CItadel - Deleted Scene</a></li>
+        <li><a href="#m106">Climbing Blind - Extras</a></li>
+        <li><a href="#m105">Hard XS - White Wave</a></li>
+        <li><a href="#m104">Hard XS - Choss</a></li>
+        <li><a href="#m103">Hard XS - Stuart</a></li>
+        <li><a href="#m102">Hard XS - Black Rocks</a></li>
+        <li><a href="#m101">Hard XS - Esoteric</a></li>
+        <li><a href="#m100">Hard XS - Ground Up</a></li>
+        <li><a href="#m99">Hard XS - Slate</a></li>
+        <li><a href="#m98">Hard XS - Cave Life</a></li>
+        <li><a href="#m97">Hard XS - Snow</a></li>
+        <li><a href="#m96">Hard XS - Deep Water</a></li>
+        <li><a href="#m95">Hard XS - Young James</a></li>
+        <li><a href="#m94">Hard XS - Great White Fright</a></li>
+        <li><a href="#m93">Hard XS - Steve McClure 9a+</a></li>
+        <li><a href="#m92">Hard XS- Head Games</a></li>
+        <li><a href="#m91">Shooting the Moon - Bloodmoon BTS</a></li>
+        <li><a href="#m90">Autana - Extras</a></li>
+        <li><a href="#m89">Blocheads - The Extras</a></li>
+        <li><a href="#m88">French Duke - Grit Flick</a></li>
+        <li><a href="#m87">Hard Plastic</a></li>
+        <li><a href="#m86">One Winter</a></li>
+        <li><a href="#m85">Stone Love</a></li>
+        <li><a href="#m84">Blood, Sweat and Bagels</a></li>
+        <li><a href="#m83">Stick It</a></li>
+        <li><a href="#m82">Suffering Andy</a></li>
+        <li><a href="#m81">Transition</a></li>
+        <li><a href="#m80">Odyssey</a></li>
+        <li><a href="#m79">Redemption - The James Pearson Story</a></li>
+        <li><a href="#m78">The Walk of Life - Committed II</a></li>
+        <li><a href="#m77">The All Rounder - Committed II</a></li>
+        <li><a href="#m76">Grit Kids - Committed II</a></li>
+        <li><a href="#m75">The Groove - Committed II</a></li>
+        <li><a href="#m74">Hard Grit</a></li>
+        <li><a href="#m73">Rhapsody 3 - Committed II</a></li>
+        <li><a href="#m72">Wide Boyz II</a></li>
+        <li><a href="#m71">Wide Boyz</a></li>
+        <li><a href="#m70">E11</a></li>
+        <li><a href="#m69">Not Just Anna (Just Anna - Extras)</a></li>
+        <li><a href="#m68">A Dream of Edwin Drummond</a></li>
+        <li><a href="#m67">Storms</a></li>
+        <li><a href="#m66">Twice Upon a Time in Boliva</a></li>
+        <li><a href="#m65">Set in Stone</a></li>
+        <li><a href="#m64">Brazilian Line</a></li>
+        <li><a href="#m63">Freeflow</a></li>
+        <li><a href="#m61">Boy</a></li>
+        <li><a href="#m60">iPaddle</a></li>
+        <li><a href="#m59">National Acrobat - Grit Flick</a></li>
+        <li><a href="#m58">Little Peculiar - Grit Flick</a></li>
+        <li><a href="#m57">Rylstone - Grit Flick</a></li>
+        <li><a href="#m56">Gerty Berwick - Grit Flick</a></li>
+        <li><a href="#m55">Widdop Wall - Grit Flick</a></li>
+        <li><a href="#m54">Slab and Crack - Grit Flick</a></li>
+        <li><a href="#m53">Brimham Rocks -  Grit Flick</a></li>
+        <li><a href="#m52">Dusk Till Dawn</a></li>
+        <li><a href="#m51">Hollow Caves - DWS</a></li>
+        <li><a href="#m50">Bleed in Hell</a></li>
+        <li><a href="#m49">Father of the Pride</a></li>
+        <li><a href="#m48">Steve&#x27;s Massive Malham Link Up</a></li>
+        <li><a href="#m47">High Tor</a></li>
+        <li><a href="#m46">Oceans of Fear</a></li>
+        <li><a href="#m45">Magic Numbers</a></li>
+        <li><a href="#m44">Skye Wall</a></li>
+        <li><a href="#m43">Patagonia Winter</a></li>
+        <li><a href="#m41">Moonflower</a></li>
+        <li><a href="#m40">Whiz Kid - Rainshadow</a></li>
+        <li><a href="#m39">Just Anna</a></li>
+        <li><a href="#m38">Blood Moon</a></li>
+        <li><a href="#m37">Wainwrights Record Attempt</a></li>
+        <li><a href="#m36">Stone Free - Portrait of a Soloist</a></li>
+        <li><a href="#m35">All My Own Stunts</a></li>
+        <li><a href="#m34">The Big Deal</a></li>
+        <li><a href="#m33">The Prophet</a></li>
+        <li><a href="#m32">On Sight</a></li>
+        <li><a href="#m31">The Asgard Project </a></li>
+        <li><a href="#m29">The Last Great Climb</a></li>
+        <li><a href="#m28">Autana</a></li>
+        <li><a href="#m27">Citadel</a></li>
+        <li><a href="#m26">Blocheads</a></li>
+        <li><a href="#m25">Fall Theory</a></li>
+        <li><a href="#m24">Lexicon E11</a></li>
+        <li><a href="#m23">Kjerag Solo</a></li>
+        <li><a href="#m22">Great Sheikhs</a></li>
+        <li><a href="#m21">Sea to Summit</a></li>
+        <li><a href="#m20">Queen Lines</a></li>
+        <li><a href="#m14">Ephemeral</a></li>
+        <li><a href="#m7">Nose Job</a></li>
+        <li><a href="#m6">Climbing Blind</a></li>
+        </ul>
+      </div>
+    </div>
+   </details>
+  </nav>
+    <section class="season" id="sec-108">
+      <div class="season-hero" style="--cover:url('https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Images/27215177-95da-4b5c-9a1b-5283d9fe46c2/britrock-season-7-package-highlights.webp')">
+        <h2>BritRock Season 7 Package</h2>
+      </div>
+      <details class="season-desc"><summary>About this season</summary><p>We’ve lined up the very best new climbing and adventure films from the UK — epic ascents, big laughs, and gripping stories that’ll leave you buzzing for your next adventure. BritRock brings together world-class athletes and everyday questers alike. Grab your mates, grab a seat, and get ready for a night of pure climbing inspiration.&lt;br/&gt;&lt;br/&gt; The online digital release runs from the Christmas period (20th Dec).&lt;br/&gt;&lt;br/&gt;&lt;b&gt;&lt;u&gt;Films&lt;/u&gt;&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Little Wings &lt;/b&gt;&lt;br/&gt;For 5&amp;#x27;2” Tina Breslin, the tallest lines bring the greatest solace. Tina was recently diagnosed with ADHD, and highballs are her escape from an overactive mind. We follow Tina&amp;#x27;s climbing year as she tours stunning lines in North Yorkshire and the Lakes, supported by her partner Ian Henderson – a 6&amp;#x27;4 giant who provides no useful beta! Tina&amp;#x27;s severe lack of reach and her neurological state provide ever-present challenges that Tina never shies from. This film is a sweet and charming exploration of the mental benefits of climbing, and of the focus that can be found in commitment. In the grand conclusion, the stakes are raised when Tina attempts &amp;#x27;Hang the Gallows High&amp;#x27;, a route where falling is not an option.&lt;br/&gt;Little Wings – 25mins.&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Trad Stars&lt;/b&gt;&lt;br/&gt;2025 proved to be one of the best trad climbing years in living memory, and filmmaker Al Lee has been on a mission to document its most incredible ascents. Trad Stars celebrates UK trad climbing in all its glory – the colourful characters, the rich history, the thrilling lines, the awesome climbing!&lt;br/&gt;&lt;br/&gt;Highlights include:&lt;br/&gt;&lt;br/&gt;Jaw-dropping onsights from the likes of Siebe Vanhee, Robbie Phillips.&lt;br/&gt;First ascents from Ian Cooper.&lt;br/&gt;Super-impressive hard repeats from Billy Ridal (Rhapsody E11 7a) and Katie Keely (Always the Sun, E7 6b)&lt;br/&gt;Blind climber Jess Dufton making his most impressive ‘non-sight’ to date with an ascent of the Pembroke route ‘Howling Gale’, E3 6a.&lt;br/&gt;This epic documentary celebrates the brilliance of British trad climbing with action from today&amp;#x27;s heroes, but also with an eye on the history and ethics that make UK trad unique. Cameos from Zoe Wood, John Dunne and Tanya Meridith all help paint an entertaining and vibrant picture of today&amp;#x27;s trad climbing scene.&lt;br/&gt;&lt;br/&gt;The film unfolds across some of the UK&amp;#x27;s most amazing locations, from the Cuillins to Pembroke, from Sca Fell to Torridon via Yorkshire limestone.&lt;br/&gt;&lt;br/&gt;Strap in for another classic to rival anything in the BritRock canon.&lt;br/&gt;Trad Stars – 60mins&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Trad Stars The Extras&lt;/b&gt; - Bonus feature of 50 minutes of deleted scenes and unused footage including Steve McClure, Mat Wright, Robbie Phillips and Alex Moore.&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Total running time 140mins&lt;/b&gt;</p></details>
+      <div class="grid">
+      <article class="card" id="m116">
+        <div class="thumb">
+          <span class="ph">Extra Stars - E8 On Sight Uncut</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Images/e92f28ed-0ab1-4b7a-aa68-84a3720a194a/extra-stars-e8-on-sight-uncut-frame.webp" alt="Extra Stars - E8 On Sight Uncut" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/116" data-title="Extra Stars - E8 On Sight Uncut" aria-label="Play Extra Stars - E8 On Sight Uncut"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Extra Stars - E8 On Sight Uncut</h3>
+          <p class="short">An uncut edit of Siebe Vanhee&#x27;s on sight ascent of &#x27;Airdrawn Dagger&#x27; E8 6c.</p>
+          <details><summary>Summary</summary><p>By popular demand we have released an uncut edit of Siebe Vanhee&#x27;s on sight ascent of &#x27;Airdrawn Dagger&#x27; E8 6c. From around one minute into the edit we can watch every inch of Siebe&#x27;s climbing from just below the roof where the real difficulties begin. An amazing feat of stamina, persistence and how to rest in strenuous positions. Trad nerds get your freak on!</p></details>
+        </div>
+      </article>
+      <article class="card" id="m111">
+        <div class="thumb">
+          <span class="ph">Extra Stars - Dalriada</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Images/43e49801-6318-49a9-8a4d-a1e404622c60/extra-stars-dalriada-frame.webp" alt="Extra Stars - Dalriada" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/111" data-title="Extra Stars - Dalriada" aria-label="Play Extra Stars - Dalriada"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Extra Stars - Dalriada</h3>
+          <p class="short">Watch Mat Wright go for his first ever E7 trad on sight on the iconic Dalriada.</p>
+          <details><summary>Summary</summary><p>Watch Mat Wright go for his first ever E7 trad on sight on the iconic Dalriada, The Cobbler, Scotland.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m109">
+        <div class="thumb">
+          <span class="ph">Little Wings</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Images/4bb31df8-3d9b-48c9-9404-d761db2abfb4/little-wings-frame.webp" alt="Little Wings" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/video/aa98e4186cdf432cad3ba998c76b6c3c/4511f69f281e48498ed4d280d32b61de/manifest.m3u8" data-player="https://britrockplus.com/player/109" data-title="Little Wings" aria-label="Play Little Wings"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Little Wings</h3>
+          <p class="short">For 5&#x27;2” Tina Breslin, the tallest lines bring the greatest solace.</p>
+          <details><summary>Summary</summary><p>For 5&#x27;2” Tina Breslin, the tallest lines bring the greatest solace. Tina was recently diagnosed with ADHD, and highballs are her escape from an overactive mind. We follow Tina&#x27;s climbing year as she tours stunning lines in North Yorkshire and the Lakes, supported by her partner Ian Henderson – a 6&#x27;4&quot; giant who provides no useful beta! Tina&#x27;s severe lack of reach and her neurological state provide ever-present challenges that Tina never shies from. This film is a sweet and charming exploration of the mental benefits of climbing, and of the focus that can be found in commitment. In the grand conclusion, the stakes are raised when Tina attempts &#x27;Hang the Gallows High&#x27;, a route where falling is not an option.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m113">
+        <div class="thumb">
+          <span class="ph">Extra Stars - Shelterstone</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Images/10f7f32a-e659-4bff-a027-30fa83cee287/extra-stars-shelterstone-frame.webp" alt="Extra Stars - Shelterstone" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/113" data-title="Extra Stars - Shelterstone" aria-label="Play Extra Stars - Shelterstone"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Extra Stars - Shelterstone</h3>
+          <p class="short">Slow TV style edit of Robbie Phillips and Jamie Lowther on two classic outings at the Shelterstone.</p>
+          <details><summary>Summary</summary><p>A slow TV style edit of Robbie Phillips and Jamie Lowther taking on two classic outings on the Shelterstone in the Cairngorms; Central Slabs “Thor” E5 6b and on Main Bastion, “Haystack” E3 5c. Sit back and enjoy the wonders of this magnificent area with the amazing drone work of Kirk Watson.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m114">
+        <div class="thumb">
+          <span class="ph">Extra Stars - Booby Prize Direct</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Images/a0d3e793-ca32-47a8-a22e-1c3ee3469f05/extra-stars-booby-prize-direct-frame.webp" alt="Extra Stars - Booby Prize Direct" onerror="this.classList.add('failed')">
+          
+          
+        </div>
+        <div class="body">
+          <h3>Extra Stars - Booby Prize Direct</h3>
+          <p class="short">COING SOON! Ian Cooper gets involved on one of the Culm Coast&#x27;s more remarkable rock formations.</p>
+          <details><summary>Summary</summary><p>COING SOON! Ian Cooper gets involved on one of the Culm Coast&#x27;s more remarkable rock formations.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m110">
+        <div class="thumb">
+          <span class="ph">Trad Stars</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Images/65d98ceb-ade7-4bb3-b2ba-884b58a94e77/trad-stars-frame.webp" alt="Trad Stars" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/video/b661457adb734e16868bd96d7fe004bc/bd88bd0be2da406cb1da8e78ffa99aa4/manifest.m3u8" data-player="https://britrockplus.com/player/110" data-title="Trad Stars" aria-label="Play Trad Stars"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Trad Stars</h3>
+          <p class="short">Trad Stars celebrates UK trad climbing in all its glory.</p>
+          <details><summary>Summary</summary><p>2025 proved to be one of the best trad climbing years in living memory, and filmmaker Al Lee has been on a mission to document its most incredible ascents. Trad Stars celebrates UK trad climbing in all its glory – the colourful characters, the rich history, the thrilling lines, the awesome climbing!<br><br>Highlights include:<br><br>Jaw-dropping onsights from the likes of Siebe Vanhee, Robbie Phillips.<br>First ascents from Ian Cooper.<br>Super-impressive hard repeats from Billy Ridal (Rhapsody E11 7a) and Katie Keely (Always the Sun, E7 6b)<br>Blind climber Jess Dufton making his most impressive ‘non-sight’ to date with an ascent of the Pembroke route ‘Howling Gale’, E3 6a.<br>This epic documentary celebrates the brilliance of British trad climbing with action from today&#x27;s heroes, but also with an eye on the history and ethics that make UK trad unique. Cameos from Zoe Wood, John Dunne and Tanya Meridith all help paint an entertaining and vibrant picture of today&#x27;s trad climbing scene.<br><br>The film unfolds across some of the UK&#x27;s most amazing locations, from the Cuillins to Pembroke, from Sca Fell to Torridon via Yorkshire limestone.<br><br>Strap in for another classic to rival anything in the BritRock canon.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m112">
+        <div class="thumb">
+          <span class="ph">Extra Stars - Steve McClure</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Images/577c8236-c6d5-42a3-9b75-070dcab7a5f8/extra-stars-steve-mcclure-frame.webp" alt="Extra Stars - Steve McClure" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/112" data-title="Extra Stars - Steve McClure" aria-label="Play Extra Stars - Steve McClure"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Extra Stars - Steve McClure</h3>
+          <p class="short">Steve McClure goes for an on sight of the rarely in condition &#x27;Dharma&#x27; E7 6c.</p>
+          <details><summary>Summary</summary><p>Steve McClure goes for an on sight of the rarely in condition &#x27;Dharma&#x27;, a classic Dawes E7 6c at Dukes Quarry in the Peak District.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m115">
+        <div class="thumb">
+          <span class="ph">Extra Stars - E9 Ground Up</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Images/8eaf8eca-6efc-47ab-a225-7a545618c16b/extra-stars-e9-ground-up-frame.webp" alt="Extra Stars - E9 Ground Up" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/115" data-title="Extra Stars - E9 Ground Up" aria-label="Play Extra Stars - E9 Ground Up"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Extra Stars - E9 Ground Up</h3>
+          <p class="short">Alex Moore goes ground up on &#x27;Mission Impossible&#x27; E9 6c.</p>
+          <details><summary>Summary</summary><p>One of the UK&#x27;s most under-rated climbers Alex Moore goes for an on sight of the classic &#x27;Heart of Stone&#x27; E7 6b and then turns his attention to the neighbouring &#x27;Mission Impossible&#x27; E9 6c, Skyline Buttress, North Wales.</p></details>
+        </div>
+      </article>
+      </div>
+    </section>
+    <section class="season" id="sec-42">
+      <div class="season-hero" style="--cover:url('https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/ddcd47217a384dea890d0c5a0f4445c8/Images/9566e9c213054c89b02eca4b06a361db')">
+        <h2>BritRock Season 6 Package</h2>
+      </div>
+      <details class="season-desc"><summary>About this season</summary><p>Watch all three films included in Brit Rock VI; &#x27;Nose Job&#x27;, &#x27;Climbing Blind II&#x27; and &#x27;Freja&#x27;s Back.</p></details>
+      <div class="grid">
+      <article class="card" id="m9">
+        <div class="thumb">
+          <span class="ph">Freja&#x27;s Back</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/3288bb0776e04f7d814f5175d3e3a2cf/Images/f0d2c26c48b54ba1827f6d5d476e173f" alt="Freja&#x27;s Back" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/07d2e97825a64d129994be54baf9febc/Assets/3288bb0776e04f7d814f5175d3e3a2cf/Content/2c0a0569eeb34591ac8702d0e8004617/manifest.m3u8" data-player="https://britrockplus.com/player/9" data-title="Freja&#x27;s Back" aria-label="Play Freja&#x27;s Back"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Freja&#x27;s Back</h3>
+          <p class="short">Freja Shannon recovers from a serious accident to attempt &#x27;Ave Ceasar&#x27; (E8, F7c) in the Swiss Alps.</p>
+          <details><summary>Summary</summary><p>All-round climber Freja Shannon is back again for 2024. In the early alpine season of 2024 Freja took a serious fall on the committing North Face of the Droites in the French Alps resulting in a broken back. This film tells Freja’s story of initial horror and doubts to a full physical recovery. In Freja’s inimitable style and despite the physio’s prognosis, Freja returns to walking and then climbing in an unusually short time frame. We reflect back to the ups and downs of Freja’s rehabilitation as Freja attempts an ascent of ‘Ave Ceasar’ an immaculate 7c trad route on the spectacular Petit Clocher du Portalet. Whilst physically recovered, as the story transpires it seems the psychological aspects of such a traumatic event may take more time to heal.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m8">
+        <div class="thumb">
+          <span class="ph">Climbing Blind II</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/65ea3b3468fd4880a2305857b6eef21b/Images/2319723584fb4fa0aea1047af1b04ae1" alt="Climbing Blind II" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/07d2e97825a64d129994be54baf9febc/Assets/65ea3b3468fd4880a2305857b6eef21b/Content/dc6fd1e5d15944d098f7e770c36d71a6/manifest.m3u8" data-player="https://britrockplus.com/player/8" data-title="Climbing Blind II" aria-label="Play Climbing Blind II"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Climbing Blind II</h3>
+          <p class="short">Be afraid as blind climber Jesse Dufton attempts the notorious &amp;#x27;El Matador&amp;#x27; Devils Tower.</p>
+          <details><summary>Summary</summary><p>Be afraid as blind climber Jesse Dufton attempts the notorious &amp;#x27;El Matador&amp;#x27; on the Devil&amp;#x27;s Tower, Wyoming.&lt;br/&gt;&lt;br/&gt;Following on from our first film ‘Climbing Blind’ (2019) where we see blind climber Jesse Dufton and sight guide Molly Dufton ascend the iconic Old Man of Hoy, this film picks up the story of Jesse’s incredible climbing career. Born with a rare genetic disease; retinitis pigmentosa, Jesse no longer receives any useful information from his eyes. Despite this Jesse’s climbing has continued to progress. As well as competing on the para-circuit and making first ascents in Morocco, Jesse has managing to on-sight several E2’s. This season Jesse’s ambition is set on a successful on-sight of an E3 and chooses the infamous ‘El Matador’ rated 5.10d (E3&amp;#x2F;4) on the spell-binding Devil’s Tower in Wyoming, USA. What unfolds is one of the most remarkable feats of persistence and human endeavour you will ever witness. As terrifying as it is inspiring; Jesse takes several leader falls on-route to the summit in a grueling encounter of the blind kind. If adversity in life presents an opportunity to grow then look no further than our movie Climbing Blind II.</p></details>
+        </div>
+      </article>
+      </div>
+    </section>
+    <section class="season" id="sec-19">
+      <div class="season-hero" style="--cover:url('https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/33062e9e79824121b476a076869dcc4a/Images/e092cd3742eb44ce875d469ed47355e4')">
+        <h2>BritRock Season 5 Package</h2>
+      </div>
+      <details class="season-desc"><summary>About this season</summary><p>Watch all five films included in Brit Rock V; &#x27;Hard Git&#x27;, &#x27;Helmcken Falls&#x27;, &#x27;Goddess of Craic&#x27;, &#x27;Headjam and &#x27;Shining Stones&#x27;.</p></details>
+      <div class="grid">
+      <article class="card" id="m18">
+        <div class="thumb">
+          <span class="ph">Goddess of Craic</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/b0edc02bf3624abd835e7586bb720a21/Images/24cd5036bf8a46a1ab7da95272b75f99" alt="Goddess of Craic" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/18" data-title="Goddess of Craic" aria-label="Play Goddess of Craic"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Goddess of Craic</h3>
+          <p class="short">Join half-Swedish, half-Irish Freja in her ancestral homelands as she pursues her climbing goals.</p>
+          <details><summary>Summary</summary><p>This film tells the story of rising trad star Freja Shannon. We join half-Swedish, half-Irish Freja in her ancestral homelands as she pursues her climbing goals for the season – ‘Sista Bossen’ E8 6c at the world-class granite climbing area of Bohuslan, Sweden and ‘Snell’s Law’ E7 6c at the Burren on the west coast of Ireland. Freja is as affable as she is committed once on the lead, resulting in captivating and gripping footage that will leave your jaw on the floor.<br><br>The film also delves into Freja’s past, where we learn of her less-than-glamorous journey to becoming a professional climber – and how she overcame her inner doubts to break through as a leading female trad climber and alpinist. Whippers, sends and Nordic power screams all-inclusive in this spectacular and entertaining film.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m13">
+        <div class="thumb">
+          <span class="ph">Headjam</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/2f2918c9565b4bbe8829a7c1115799ae/Images/f3467753f0e84a9a9c06dac440bdfc1b" alt="Headjam" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/13" data-title="Headjam" aria-label="Play Headjam"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Headjam</h3>
+          <p class="short">Filmmaker Al Lee turns the camera on himself in this deep introspective story.</p>
+          <details><summary>Summary</summary><p>Filmmaker Alastair Lee turns the camera on himself in this deep introspective story of triumph through adversity. Perceived as a successful man with the perfect life, Al experiences unexpectedly dark times. Fearing he will lose everything, we watch a man on the brink claw his way from despair, using climbing and training to find peace and salvation.<br><br>Having never been the greatest of climbers, Al demolishes his inner punter – attempting to fulfill his potential by setting his sights on routes he’s spent 30 years avoiding. Includes hard first ascents, calamitous trad leads and bold on sights.<br><br>Carnage ensues almost every time Al sets off on a lead in this gripping, hilarious, emotional and ultimately inspiring story of a man in struggle as he seeks to reconnect with himself. Adding to the riotous flavour of this production, Al asks the climbers he’s working with to do the filming.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m12">
+        <div class="thumb">
+          <span class="ph">Hard Git</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/65bdd8eb19ef48348d7d3c678f5a548a/Images/5fd08d775dad4144869168af7140acb1" alt="Hard Git" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/12" data-title="Hard Git" aria-label="Play Hard Git"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard Git</h3>
+          <p class="short">Climber Matt Wright goes trailblazing across the UK making wild first ascents and bold solos.</p>
+          <details><summary>Summary</summary><p>Controversial and never far from the news; climber Matt Wright goes trailblazing across the UK, making wild first ascents, hard solos and bold new lines. Loveable rogue and working-class hero Matt puts his money where his mouth is in this tour-de-force of hard climbing. After weighing up his time-verses-routes equation, Matt abandons an attempt of the infamous Rhapsody (E11) and sets off on a quest to climb new inspiring lines. He does not disappoint, with his energetic journey culminating in the first ascent of ‘Magical Thinking’ E10 7a – a heart-stoppingly dangerous route at Pavey Ark, Lake District.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m11">
+        <div class="thumb">
+          <span class="ph">Helmcken Falls</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/3c16f29589f34125a7cb1bd4f7c89f4e/Images/545ece55103d4e328757271c21066e84" alt="Helmcken Falls" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/11" data-title="Helmcken Falls" aria-label="Play Helmcken Falls"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Helmcken Falls</h3>
+          <p class="short">Emma Powell and Neil Gresham join the original pioneers at this unique ice-climbing venue.</p>
+          <details><summary>Summary</summary><p>Emma Powell and Neil Gresham join the original pioneers of this unique ice climbing venue in British Columbia, Tim Emmett and Klemen ‘Klem’ Premrl once again push the boundaries of steep, sporty ice. After years of teasing, Tim finally invites his life-long friend Neil Gresham, along with top mixed climber Emma Powell to stoke up their pioneering spirit and develop some new lines at this surreal venue.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m10">
+        <div class="thumb">
+          <span class="ph">Shining Stones</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/85c48cf9dd3f45b4a9147e734164f58a/Images/a72095d72863468a856794b7a7c0cd06" alt="Shining Stones" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/85c48cf9dd3f45b4a9147e734164f58a/Content/0eef8c482682477799d36846cabc72f8/manifest.m3u8" data-player="https://britrockplus.com/player/10" data-title="Shining Stones" aria-label="Play Shining Stones"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Shining Stones</h3>
+          <p class="short">First asents by Robbie Phillips &amp; Simon Nadin on a little-known mtn in the far north of Scotland.</p>
+          <details><summary>Summary</summary><p>Climber Robbie Phillips chances upon a little-known mountain in the very far north of Scotland whilst driving from east coast to west. After some research, Robbie discovers the mountain is called Ben Loyal, and that climbing legend Simon Nadin has been developing a couple of lines at the crag. Simon tells him that there is something very special up there...<br><br>What Robbie finds at Ben Loyal is off the scale: endless bouldering, highballs, countless quality granite tors and buttresses with untapped climbing potential. But all this pales into insignificance compared with the main face, which holds the future of trad climbing on what is surely one of Britain’s greatest cliffs. A truly stunning film of hard new routing by Robbie and Simon in an extraordinary setting.</p></details>
+        </div>
+      </article>
+      </div>
+    </section>
+    <section id="sec-individual">
+      <h2 class="section-title">Individual Films</h2>
+      <div class="grid">
+      <article class="card" id="m117">
+        <div class="thumb">
+          <span class="ph">Blind as a Bat</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Images/f4e796c1-acfc-4e5f-93af-3012b83cdc9b/blind-as-a-bat-frame.webp" alt="Blind as a Bat" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/video/a31d171feffd4b18a6ec4bf8bb3aeeb9/4118897be78d4489b1db17ca1e832b67/manifest.m3u8" data-player="https://britrockplus.com/player/117" data-title="Blind as a Bat" aria-label="Play Blind as a Bat"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Blind as a Bat</h3>
+          <p class="short">Jesse Dufton goes head pointing for the first time on the formidable &#x27;Bat Out of Hell&#x27; E5 6a.</p>
+          <details><summary>Summary</summary><p>Jesse Dufton, a blind climber born with a genetic eye condition that now renders him totally blind, goes head pointing for the first time. Jesse was aged 23 when his sight began to massively deteriorate. His hardest lead up until then was E1. Watch in awe as Jesse takes on the formidable &#x27;Bat Out of Hell&#x27; E5 6a, at Higgar Tor. There really is no end to what this man can achieve.<br><br>We recommend watching Climbing Blind and Climbing Blind II for Jesse and Molly&#x27;s incredible story.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m107">
+        <div class="thumb">
+          <span class="ph">CItadel - Deleted Scene</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/d745c5bd4b724c5c94ac645d9f413b94/Images/ec00b0d087254575be913909ea7106f5" alt="CItadel - Deleted Scene" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/107" data-title="CItadel - Deleted Scene" aria-label="Play CItadel - Deleted Scene"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>CItadel - Deleted Scene</h3>
+          <p class="short">Matt and Jon reflect upon the high risk states of the alpinism game.</p>
+          <details><summary>Summary</summary><p>Matt and Jon give the descent route from the mountain a recce and reflect upon the high risk states of the alpinism game.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m106">
+        <div class="thumb">
+          <span class="ph">Climbing Blind - Extras</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/e2126c24412248c78026d88917efa5d6/Images/439fdc95844146e496d44147fc893e24" alt="Climbing Blind - Extras" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/106" data-title="Climbing Blind - Extras" aria-label="Play Climbing Blind - Extras"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Climbing Blind - Extras</h3>
+          <p class="short">Includes extended scene at the Roaches with Neil Gresham, Jesse and Molly in conversation and more.</p>
+          <details><summary>Summary</summary><p>Includes extended scene at the Roaches with pro climber Neil Gresham, Jesse and Molly in conversation audio over the film and unused drone footage from the Old Man of Hoy.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m105">
+        <div class="thumb">
+          <span class="ph">Hard XS - White Wave</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/6df5e6e2b31e41079cb0a139d97e0bc5/Images/f6f05364dec843f88bf64b2fb9190621" alt="Hard XS - White Wave" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/105" data-title="Hard XS - White Wave" aria-label="Play Hard XS - White Wave"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS - White Wave</h3>
+          <p class="short">Matt Spenceley and Chris Cubitt go dry tooling, on the beach.</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>White Wave - Matt Spenceley and Chris Cubitt go dry tooling, on the beach.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m104">
+        <div class="thumb">
+          <span class="ph">Hard XS - Choss</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/ca482d6fc4e14e2b8a750f1421bf2320/Images/de4622ea0f5e49b59cf27455b9876d67" alt="Hard XS - Choss" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/104" data-title="Hard XS - Choss" aria-label="Play Hard XS - Choss"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS - Choss</h3>
+          <p class="short">Dave Thomas and Martin Perry climb some of the worst rock you could imagine.</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>Choss - Dave Thomas and Martin Perry climb some of the worst rock you could imagine on the north coast of Devon.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m103">
+        <div class="thumb">
+          <span class="ph">Hard XS - Stuart</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/e31bc44f15cf4f4b91567c7fe0375767/Images/7fe7f0efd18944afbdc235e0754bd401" alt="Hard XS - Stuart" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/103" data-title="Hard XS - Stuart" aria-label="Play Hard XS - Stuart"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS - Stuart</h3>
+          <p class="short">Old Stuart Littlefair breaks into 8c after 3 years of trying.</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>Stuart - Old Stuart Littlefair breaks into 8c after 3 years of trying.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m102">
+        <div class="thumb">
+          <span class="ph">Hard XS - Black Rocks</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/3313f83e9eb641c6b88aac33f809db24/Images/efed3283196441c9b24cdcc09359bbb7" alt="Hard XS - Black Rocks" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/102" data-title="Hard XS - Black Rocks" aria-label="Play Hard XS - Black Rocks"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS - Black Rocks</h3>
+          <p class="short">Tom Briggs Cracks Britain&#x27;s Black Rocks Dyno.</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>Black Rocks - Tom Briggs Cracks the Black Rocks&#x27; Dyno.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m101">
+        <div class="thumb">
+          <span class="ph">Hard XS - Esoteric</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/b73050bb55364ef78302c14e6c9d5b1f/Images/786409079e4f43898ce8ae3875e2f676" alt="Hard XS - Esoteric" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/101" data-title="Hard XS - Esoteric" aria-label="Play Hard XS - Esoteric"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS - Esoteric</h3>
+          <p class="short">John Arran and Shane Ohly are on a mission. Who is going to crack first?</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>Esoteric - John Arran and Shane Ohly are on a mission. Who is going to crack first?</p></details>
+        </div>
+      </article>
+      <article class="card" id="m100">
+        <div class="thumb">
+          <span class="ph">Hard XS - Ground Up</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/d0ea87a8b3804a84a16bee135b08149b/Images/15201879fc3d419b8f7159b9f580fc0e" alt="Hard XS - Ground Up" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/100" data-title="Hard XS - Ground Up" aria-label="Play Hard XS - Ground Up"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS - Ground Up</h3>
+          <p class="short">Tim Emmett goes ground up on Gogarth&#x27;s hardest route. - Extinction E8 6c.</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>Ground Up - Tim Emmett goes ground up on Gogarth&#x27;s hardest route. - Extinction E8 6c. Things could get a bit pumpy.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m99">
+        <div class="thumb">
+          <span class="ph">Hard XS - Slate</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/901523b9f213404c93b0c088907f6c94/Images/253c94401c7d4aebbbe422474a421a14" alt="Hard XS - Slate" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/99" data-title="Hard XS - Slate" aria-label="Play Hard XS - Slate"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS - Slate</h3>
+          <p class="short">Pete Robins and Nic Sellers provide a slate master class. Up to a point!!!</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>Slate - Pete Robins and Nic Sellers provide a slate master class. Up to a point!!!</p></details>
+        </div>
+      </article>
+      <article class="card" id="m98">
+        <div class="thumb">
+          <span class="ph">Hard XS - Cave Life</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/63f7c07d4f3842f2b3204240f2693d59/Images/7e27eeec61b14ff4a305164a08456ca9" alt="Hard XS - Cave Life" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/98" data-title="Hard XS - Cave Life" aria-label="Play Hard XS - Cave Life"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS - Cave Life</h3>
+          <p class="short">Gaz Parry waxes lyrical about the thuggery of Pariseillas Cave.</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>Cave Life - Gaz Parry waxes lyrical about the thuggery of Pariseillas Cave nearly tearing his bicep in half in the process.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m97">
+        <div class="thumb">
+          <span class="ph">Hard XS - Snow</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/2725320f26fc4defa70f714a0c68fc81/Images/0f5108c495694b5b8339a6835b7a7605" alt="Hard XS - Snow" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/97" data-title="Hard XS - Snow" aria-label="Play Hard XS - Snow"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS - Snow</h3>
+          <p class="short">Ian Parnell and Tim Emmett tackle a long standing unclimbed line in the Cairngorms.</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>Snow - Ian Parnell and Tim Emmett tackle a long standing unclimbed line in the Cairngorms when it is covered in two foot of hoar. Ridiculous.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m96">
+        <div class="thumb">
+          <span class="ph">Hard XS - Deep Water</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/be034c76954f492d92a6bc1f7d81e23e/Images/9fdb79450c0247afbac8f77a0830ea5e" alt="Hard XS - Deep Water" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/96" data-title="Hard XS - Deep Water" aria-label="Play Hard XS - Deep Water"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS - Deep Water</h3>
+          <p class="short">Some fun by the sea capped by Neil Gresham&#x27;s first ascent of Britain&#x27;s hardest DWS, Cutlass.</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>Deep Water - Some fun by the sea capped by Neil Gresham&#x27;s first ascent of Britain&#x27;s hardest DWS, Cutlass.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m95">
+        <div class="thumb">
+          <span class="ph">Hard XS - Young James</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/95356de7b8a74fa894a5f0df21f263d4/Images/0d45bcfd3ae54c3899ebcf54e752af3a" alt="Hard XS - Young James" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/95" data-title="Hard XS - Young James" aria-label="Play Hard XS - Young James"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS - Young James</h3>
+          <p class="short">Boy to man - James Pearson reflects on the craziness and naivety of his first hard grit ascents.</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>Young James - Boy to man - James Pearson reflects on the craziness and naivety of his first hard grit ascents.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m94">
+        <div class="thumb">
+          <span class="ph">Hard XS - Great White Fright</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/80193c81e83941d3b5da34c0ffd5bd2e/Images/6433238705704c5db938361dbfa47f0f" alt="Hard XS - Great White Fright" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/94" data-title="Hard XS - Great White Fright" aria-label="Play Hard XS - Great White Fright"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS - Great White Fright</h3>
+          <p class="short">Ian Parnell &amp; Chris Cubitt tackle the awesome &#x27;Great White Fright&#x27;.</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>Great White Fright - Ian Parnell and Chris Cubitt tackle the awesome &#x27;Great White Fright&#x27; (the white chalk cliffs of Dover!). It is Chris&#x27;s first bold adventure after a serious accident.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m93">
+        <div class="thumb">
+          <span class="ph">Hard XS - Steve McClure 9a+</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/253ca88b542348a387eec6e710df54ca/Images/1f2400c40876435199317fac7de5ecf3" alt="Hard XS - Steve McClure 9a+" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/93" data-title="Hard XS - Steve McClure 9a+" aria-label="Play Hard XS - Steve McClure 9a+"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS - Steve McClure 9a+</h3>
+          <p class="short">Following Steve McClure&#x27;s as he attempts the first ascent of Britain&#x27;s hardest sport climb.</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>Steve McClure 9a+ - A rigorous examination of red-pointing following Steve McClure&#x27;s as he attempts the first ascent of Britain&#x27;s hardest sport climb.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m92">
+        <div class="thumb">
+          <span class="ph">Hard XS- Head Games</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/137f248b0e5a4904960b9e8872ef0db7/Images/359546f3f8a747728b7fc84ddde3d5c6" alt="Hard XS- Head Games" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/92" data-title="Hard XS- Head Games" aria-label="Play Hard XS- Head Games"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard XS- Head Games</h3>
+          <p class="short">A pot pourri of grit madness. Includes Sam Whittaker&#x27;s &#x27;Appointment with Death&#x27;.</p>
+          <details><summary>Summary</summary><p>One of 14 short films that make up a rip roaring ride into the heart and soul of the British climbing experience. Travelling far and wide across our magical isle we&#x27;ve searched out the best climbers on all types of rock in all sorts of peril. Whilst full of first ascents and hardcore fear the films also offer a rich blend humour and touching observation. This is vintage Slackjaw. <br><br>Head Games - A pot pourri of grit madness. Includes Sam Whittaker&#x27;s &#x27;Appointment with Death&#x27;, a route with no runners, no holds and no second chances. Also features Toby Benham, Lucinda Hughes and Ryan Pasquill in head-point action.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m91">
+        <div class="thumb">
+          <span class="ph">Shooting the Moon - Bloodmoon BTS</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/3020477e47154f318f4dc3f85540af7a/Images/3932daf395f44402ae8fd96f188c1075" alt="Shooting the Moon - Bloodmoon BTS" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/91" data-title="Shooting the Moon - Bloodmoon BTS" aria-label="Play Shooting the Moon - Bloodmoon BTS"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Shooting the Moon - Bloodmoon BTS</h3>
+          <p class="short">A behind the scenes look from our Madagascan Big Walling film - Bloodmoon. (Al Lee&#x27;s video diary).</p>
+          <details><summary>Summary</summary><p>A behind the scenes look from our Madagascan Big Walling film - Bloodmoon.  A great insight into what&#x27;s involved to capture this stuff with a film crew of one person. With a tight schedule and a freak accident early in the trip film maker Al Lee begins to feel the pressure...</p></details>
+        </div>
+      </article>
+      <article class="card" id="m90">
+        <div class="thumb">
+          <span class="ph">Autana - Extras</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/dfc6d663a2294492bf6908cce3e0a3d4/Images/f775f0d9c4884e1db0ee26e744f1da8c" alt="Autana - Extras" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/90" data-title="Autana - Extras" aria-label="Play Autana - Extras"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Autana - Extras</h3>
+          <p class="short">The extras from our jungle big walling adventure movie Autana.</p>
+          <details><summary>Summary</summary><p>The extras from our jungle big walling adventure movie Autana including &#x27;The F Count&#x27;, &#x27;Autana Jamming&#x27;, &#x27;Behind the Scenes with the Camera Crew&#x27;. &#x27;Yopo Talk&#x27; and &#x27;Timelapse Montage&#x27;.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m89">
+        <div class="thumb">
+          <span class="ph">Blocheads - The Extras</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/77c8604b631b4782bf16556dd65c9b30/Images/f36b9bf9d25e49f58785617b696f57db" alt="Blocheads - The Extras" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/89" data-title="Blocheads - The Extras" aria-label="Play Blocheads - The Extras"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Blocheads - The Extras</h3>
+          <p class="short">Thirty six minutes of amazing bouldering that somehow didn&#x27;t make the cut of the full length cut.</p>
+          <details><summary>Summary</summary><p>Thirty six minutes of amazing bouldering that somehow didn&#x27;t make the cut of the full length cut.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m88">
+        <div class="thumb">
+          <span class="ph">French Duke - Grit Flick</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/fa888dd5621a488bb2148c2ef32f60b4/Images/2b84166eaaae41e4875960b63b3d36fc" alt="French Duke - Grit Flick" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/88" data-title="French Duke - Grit Flick" aria-label="Play French Duke - Grit Flick"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>French Duke - Grit Flick</h3>
+          <p class="short">The first ascent of &#x27;French Duke&#x27; another last great problem at Earl&#x27;s Crag by Jordan Buys.</p>
+          <details><summary>Summary</summary><p>The first ascent of &#x27;French Duke&#x27; another last great problem at Earl&#x27;s Crag by Jordan Buys.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m87">
+        <div class="thumb">
+          <span class="ph">Hard Plastic</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/54f0b8d5961a47288b722f3cba945887/Images/8a9573cea5ea4ab39a920658827fa196" alt="Hard Plastic" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/87" data-title="Hard Plastic" aria-label="Play Hard Plastic"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hard Plastic</h3>
+          <p class="short">Chris Sharma competing in Britain’s premier bouldering competition at the tender age of nineteen.</p>
+          <details><summary>Summary</summary><p>Chris Sharma competing in Britain’s premier bouldering competition at the tender age of nineteen.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m86">
+        <div class="thumb">
+          <span class="ph">One Winter</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/7e9d2c0f00664968bf60b6e3a4dcd9be/Images/b6739e0a5a3144b2bc9200cdf9581b93" alt="One Winter" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/86" data-title="One Winter" aria-label="Play One Winter"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>One Winter</h3>
+          <p class="short">Following Airlie Jane Anderson over three winter months in the traditional Slackjaw stylee.</p>
+          <details><summary>Summary</summary><p>Following Airlie Jane Anderson over three winter months in the traditional Slackjaw stylee, this film sets out to try and find out what makes her tick. Travelling to Colorado, the Alps, the popular end of Stanage and the scrapyard on London Road, Airlie reveals herself to be great company and a little mellower than many perceive. The film offers more warmth and humour than it’s icy surrounds suggest, giving Airlie’s overall take on life, the pet names she has for her ice tools and some brilliant ice climbing sequences to boot. Airlie’s companions for much of the film are British Climbing Champ Lucy Creamer and Alpine menace Andy Parkin. Both put in amazing ascents themselves, Andy’s ascent of a new route in the Alps probably amounting to the most terrifying, drawn-out filming experience we’ve ever had – starting with Ben falling into a crevasse!</p></details>
+        </div>
+      </article>
+      <article class="card" id="m85">
+        <div class="thumb">
+          <span class="ph">Stone Love</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/72b9362cca724e3e86bd341376c61a7b/Images/d5aa97c76a0c467fb125e8dc856f5d44" alt="Stone Love" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/85" data-title="Stone Love" aria-label="Play Stone Love"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Stone Love</h3>
+          <p class="short">Stone Love; five of Britain’s strongest climbers bouldering at Cresciano in Switzerland.</p>
+          <details><summary>Summary</summary><p>Stone Love is the story of five of Britain’s strongest climbers – Malcolm Smith, Jerry Moffatt, Ben Moon, Richie Patterson, Andy Harris – on a week-long trip to the granite bouldering mecca of Cresciano in Switzerland – a beautiful alpine hillside full of classic lines and big grades. Breaking the mould of traditional bouldering films, Stone Love is a unique window into what it takes to climb hard boulder problems: the camaraderie, the competition, the frustration and the sheer hard work.. <br><br>Shot as a fly-on-the-wall documentary, Stone Love is rich, intimate and fun, conveying why travelling is such an intrinsic part of a climber’s psyche, from the early morning fried egg butties to the bleeding fingertips at the end of the day.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m84">
+        <div class="thumb">
+          <span class="ph">Blood, Sweat and Bagels</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/e4d30aee8bf9415b8345a55f661d60b5/Images/14f78956b4564f159252008ed995c0a3" alt="Blood, Sweat and Bagels" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/84" data-title="Blood, Sweat and Bagels" aria-label="Play Blood, Sweat and Bagels"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Blood, Sweat and Bagels</h3>
+          <p class="short">Two of Britain’s top free climbers take on one of Yosemite’s most awesome lumps of granite.</p>
+          <details><summary>Summary</summary><p>Two of Britain’s top free climbers decide to take on one of Yosemite’s most awesome lumps of granite: the thousand vertical metres of El Capitan – via its hardest line – with no experience of big walling whatsoever. Fired up on a diet of bagels, the climbers, Rich and Neil, set off to do battle with the dizzying exposure and raking crack lines of this historic face. The ensuing agony is captured in this spectacularly shot film, that exudes passion and humour and takes a refreshingly honest look at living six days in the vertical world.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m83">
+        <div class="thumb">
+          <span class="ph">Stick It</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/c0aab748774346a7923e22529f86eaf0/Images/3385e242be764233ae9ee4b95dffe665" alt="Stick It" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/83" data-title="Stick It" aria-label="Play Stick It"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Stick It</h3>
+          <p class="short">Stick It is an energetic romp around the UK bouldering scene from 2001. Infectious, fun stuff.</p>
+          <details><summary>Summary</summary><p>The second release from the Slackjaw team, Stick It is an energetic romp around the UK bouldering scene from 2001. Accompanied by a quirky, exciting soundtrack, this film takes us on a breakneck tour of the UK’s top bouldering venues. Your guides: the country’s best climbers – Ben Moon, Malcolm Smith, Jerry Moffatt, Airlie Anderson, John Gaskins and British Champion Andy Earl. <br><br>The problems: all the country’s stickiest. Infectious, fun stuff.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m82">
+        <div class="thumb">
+          <span class="ph">Suffering Andy</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/214a5aa525fa4258af3fbe53f1d361ce/Images/eec7e0535b5e4b5798524a100f87fef5" alt="Suffering Andy" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/82" data-title="Suffering Andy" aria-label="Play Suffering Andy"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Suffering Andy</h3>
+          <p class="short">A funny &amp; insightful this film looks at a climber&#x27;s need for introspection.</p>
+          <details><summary>Summary</summary><p>Andy was off on a slide show tour and we tagged along to climb some routes in between events. There was lots of driving, lots of sleeping in car parks and lots of slush. It was the complete Andy K experience and the film hasn&#x27;t come out too bad. Funny and insightful this film looks at a climber&#x27;s need for introspection while at the same time providing a master class in climbing snow and ice in marginal conditions. It also includes a lovely selection of Andy&#x27;s slides with plenty of choice quotes from his lectures. Routes climbed include: Sterling Bomber and Savage Slit in the Cairngorms, Polyphemus Gully on Lochnagar and Point Five &amp; Smith&#x27;s Route on the Ben.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m81">
+        <div class="thumb">
+          <span class="ph">Transition</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/f9fa0d23c28e40ecaa64264b48805742/Images/62d6023caf1a4ae7bdc057699d83902a" alt="Transition" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/f9fa0d23c28e40ecaa64264b48805742/Content/9c21f5e9004244a3ac3f31439029be3b/manifest.m3u8" data-player="https://britrockplus.com/player/81" data-title="Transition" aria-label="Play Transition"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Transition</h3>
+          <p class="short">Transition follows competition climber Natalie Berry as she makes the transition from indoor to out.</p>
+          <details><summary>Summary</summary><p>Transition follows UK competition climber Natalie Berry over the course of two years as she makes the transition from indoor to out, plastic to rock and ice. Acting as mentor along the way is all-round Scottish climber Dave MacLeod as well as top female trad climber Lucy Creamer. With scary falls, bad gear and adventurous climbing, the film documents the highs and lows of a pursuit of a life in the mountains, showing what it takes to make the move from the safety of the climbing wall to the lofty heights of Britain&#x27;s mountains and beyond.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m80">
+        <div class="thumb">
+          <span class="ph">Odyssey</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/88c0b415a589449bb4afde30fd91ecf1/Images/b7b897da5fcd469291c01fc663e3d018" alt="Odyssey" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/88c0b415a589449bb4afde30fd91ecf1/Content/340df9cae99f459c96b9e84663ce6948/manifest.m3u8" data-player="https://britrockplus.com/player/80" data-title="Odyssey" aria-label="Play Odyssey"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Odyssey</h3>
+          <p class="short">&#x27;Odyssey&#x27; is a road movie that celebrates the best of British trad climbing.</p>
+          <details><summary>Summary</summary><p>&#x27;Odyssey&#x27; is a road movie that celebrates the best of British trad climbing. From the bold Northumberland sandstone to the raging sea cliffs of Gogarth, four world-class climbers (James Pearson, Hazel Findlay, Hansjorg Auer and Caroline Ciavaldini) embark on a road-trip to attempt some of the most fierce and inspiring routes in the UK. Cinematic filmmaking, cutting edge traditional climbing and a 7.5 ton converted truck – the Odyssey begins!</p></details>
+        </div>
+      </article>
+      <article class="card" id="m79">
+        <div class="thumb">
+          <span class="ph">Redemption - The James Pearson Story</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/e5d28c94de9c46e18810810a69fb8b03/Images/d5408be5e4e144fa93b1e7869ecdae85" alt="Redemption - The James Pearson Story" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/e5d28c94de9c46e18810810a69fb8b03/Content/f6e2586a8d224057a59a8459fc293ee3/manifest.m3u8" data-player="https://britrockplus.com/player/79" data-title="Redemption - The James Pearson Story" aria-label="Play Redemption - The James Pearson Story"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Redemption - The James Pearson Story</h3>
+          <p class="short">The James Pearson Story tells the controversial story of one of the World&#x27;s best trad climbers.</p>
+          <details><summary>Summary</summary><p>The James Pearson Story tells the controversial story of one of the World&#x27;s best trad climbers, Englandʼs James Pearson. After a dramatic rise to become one of the top climbers in the UK, the controversy surrounding the grading of his routes left him feeling ostracised from the climbing scene. The film tells James’ story and follows his return to the UK as he faces his demons and looks to redeem his place within the UK climbing community.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m78">
+        <div class="thumb">
+          <span class="ph">The Walk of Life - Committed II</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/663fc15ac97449b8a825ed8e258ac369/Images/d5183b2938e54cbf848e7830eabe0142" alt="The Walk of Life - Committed II" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/663fc15ac97449b8a825ed8e258ac369/Content/d165157270254870951a780f2d6b5794/manifest.m3u8" data-player="https://britrockplus.com/player/78" data-title="The Walk of Life - Committed II" aria-label="Play The Walk of Life - Committed II"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>The Walk of Life - Committed II</h3>
+          <p class="short">The biggest &amp; most difficult challenge of James Pearson&#x27;s life, a vast slab on the Devon sea cliffs.</p>
+          <details><summary>Summary</summary><p>The biggest and most difficult challenge of James Pearson&#x27;s life; a vast blank slab on the Devon sea cliffs. This beautiful but terrifying line takes over his life until finally, sick with nerves and fear, he is ready for this daunting lead.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m77">
+        <div class="thumb">
+          <span class="ph">The All Rounder - Committed II</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/bb50ae5f26ae4e33a88e215b8a4e7963/Images/52ed38e5cc804ea29af264afc9e5aa6f" alt="The All Rounder - Committed II" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/bb50ae5f26ae4e33a88e215b8a4e7963/Content/21cfe25464264dcaa30f63319cf97ec4/manifest.m3u8" data-player="https://britrockplus.com/player/77" data-title="The All Rounder - Committed II" aria-label="Play The All Rounder - Committed II"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>The All Rounder - Committed II</h3>
+          <p class="short">Follow Dave MacLeod&#x27;s quest to achieve world-class ascents in each of the climbing disciplines.</p>
+          <details><summary>Summary</summary><p>Dave MacLeod is emerging as one of the world’s greatest all-round climbers. This film follows his quest to achieve world-class ascents in each of the climbing disciplines; major ascents in sport climbing and bouldering, plus of course, Dave’s own very bold brands of trad rock climbing and winter mixed climbing.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m76">
+        <div class="thumb">
+          <span class="ph">Grit Kids - Committed II</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/7f1bf202ed6848998853fdc506355b86/Images/42070c246f2045478cd44daec4a3e883" alt="Grit Kids - Committed II" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/7f1bf202ed6848998853fdc506355b86/Content/f9d4824e283e4733b245cd9e2abf329b/manifest.m3u8" data-player="https://britrockplus.com/player/76" data-title="Grit Kids - Committed II" aria-label="Play Grit Kids - Committed II"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Grit Kids - Committed II</h3>
+          <p class="short">Teenage brother and sister team burst onto the climbing scene with a series of spectacular ascents.</p>
+          <details><summary>Summary</summary><p>The teenage brother and sister team, Pete and Katy Whittaker burst onto the climbing scene with a series of spectacular ascents on grit. In a frenzy of climbing they both stack up countless major ascents, and then one evening after school, with his whole family assembled to watch, Pete makes the terrifying first ascent of a truly iconic line at Burbage South.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m75">
+        <div class="thumb">
+          <span class="ph">The Groove - Committed II</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/948e9d8f4d084c73bad0de15ba2577e3/Images/1a482b24a38648e1add93fa8d7fc1adc" alt="The Groove - Committed II" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/948e9d8f4d084c73bad0de15ba2577e3/Content/8566c69f8f43434b8b10f2c378490a2f/manifest.m3u8" data-player="https://britrockplus.com/player/75" data-title="The Groove - Committed II" aria-label="Play The Groove - Committed II"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>The Groove - Committed II</h3>
+          <p class="short">World-class climber; James Pearson takes on one of gritstone&#x27;s greatest unclimbed lines.</p>
+          <details><summary>Summary</summary><p>World-class climber; James Pearson takes on one of gritstone&#x27;s greatest unclimbed lines. The immaculate groove at Cratcliffe<br>has spurned many of the best climbers for over thirty years</p></details>
+        </div>
+      </article>
+      <article class="card" id="m74">
+        <div class="thumb">
+          <span class="ph">Hard Grit</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/c572e334b4db41a89a0cf0e274bdb368/Images/081cb22ad90a4bbeac44b80d6775f88a" alt="Hard Grit" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/c572e334b4db41a89a0cf0e274bdb368/Content/f7f119be81b44623808d4b1cd5e39f11/manifest.m3u8" data-player="https://britrockplus.com/player/74" data-title="Hard Grit" aria-label="Play Hard Grit"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Hard Grit</h3>
+          <p class="short">The ultra-classic climbing film remastered to high definition exclusively on BritRock+</p>
+          <details><summary>Summary</summary><p>The ultra-classic climbing film remastered to high definition exclusively on BritRock+ - Exploding the myths that shroud extreme gritstone climbing, Hard Grit includes some of the most terrifying climbing scenes ever captured. All the Peak’s star names are climbing at the top of their powers – surely something has got to give.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m73">
+        <div class="thumb">
+          <span class="ph">Rhapsody 3 - Committed II</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/b6bbb175975e44fa9680b71113a309e5/Images/61c68719d4344c49adf78b7167c0965d" alt="Rhapsody 3 - Committed II" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/b6bbb175975e44fa9680b71113a309e5/Content/9e4a7ac3538c4d3ab34d781348589c60/manifest.m3u8" data-player="https://britrockplus.com/player/73" data-title="Rhapsody 3 - Committed II" aria-label="Play Rhapsody 3 - Committed II"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Rhapsody 3 - Committed II</h3>
+          <p class="short">The legendary sport climber, Steve McClure, turns his attention to hard trad in spectacular fashion.</p>
+          <details><summary>Summary</summary><p>The legendary sport climber, Steve McClure, turns his attention to hard trad in spectacular fashion, attempting an audaciously fast repeat of Rhapsody E11.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m72">
+        <div class="thumb">
+          <span class="ph">Wide Boyz II</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/ec8414dc85914410adcb056ffbcdfecb/Images/9de141ea38be442a9a24fab778bac81f" alt="Wide Boyz II" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/ec8414dc85914410adcb056ffbcdfecb/Content/b098d8d0997b47e59572aac190d48ae4/manifest.m3u8" data-player="https://britrockplus.com/player/72" data-title="Wide Boyz II" aria-label="Play Wide Boyz II"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Wide Boyz II</h3>
+          <p class="short">The Wide Boyz Pete Whittaker and Tom Randall, embark on their next crack climbing mission.</p>
+          <details><summary>Summary</summary><p>After their success climbing the world&#x27;s hardest off-width, the Wide Boyz, Pete Whittaker and Tom Randall, embark on their next crack climbing mission. This time their sights are set on the thinner end of the crack climbing spectrum. Their goal is the mighty Cobra Crack in Squamish BC, considered to be the hardest finger crack in the world. First climbed by Canadian &#x27;rock star&#x27; Sonnie Trotter after battling it out with Didier Berthod, the route hit the media spotlight in the film First Ascent.<br><br>With no local hard cracks to train on, the Wide Boyz refit their underground training dungeon and commit to a year of torturous finger training. With only a short trip to Canada planned, the Boyz face their biggest challenge yet against the sharp granite bite of the mighty Cobra Crack!</p></details>
+        </div>
+      </article>
+      <article class="card" id="m71">
+        <div class="thumb">
+          <span class="ph">Wide Boyz</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/b5c65b698eeb45c3b7b0de71fdfbfd47/Images/f7531feb0e354dc69b37bb00fb81671b" alt="Wide Boyz" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/b5c65b698eeb45c3b7b0de71fdfbfd47/Content/1d9bc9643d964eb99929c8a65d1cf18c/manifest.m3u8" data-player="https://britrockplus.com/player/71" data-title="Wide Boyz" aria-label="Play Wide Boyz"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Wide Boyz</h3>
+          <p class="short">Pete Whittaker and Tom Randall set out to climb the world’s hardest off-width.</p>
+          <details><summary>Summary</summary><p>The world of off-width crack climbing is a strange sub-culture rumoured to be dominated by knuckle-dragging, bar-brawling dirt-bags! The climbing is tough, painful and bloody. Two climbers from England, Pete Whittaker and Tom Randall, set out to explore this world and climb the world’s hardest off-widths. They complete a brutal two-year training regime, mostly spent hanging upside down in a suburban Sheffield basement, before embarking on a tour of the USA. The tour culminates in the first ascent of the ultimate off-width test piece, Century Crack, the world’s hardest off-width.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m70">
+        <div class="thumb">
+          <span class="ph">E11</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/c5df1aa8b42446748e235ce9f518ab34/Images/d47290f17b2445bdb2c619be6ffcc00b" alt="E11" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/c5df1aa8b42446748e235ce9f518ab34/Content/7d55792971b2426d8a0decabacc1cc59/manifest.m3u8" data-player="https://britrockplus.com/player/70" data-title="E11" aria-label="Play E11"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>E11</h3>
+          <p class="short">E11 tells the story behind a route considered to be the hardest traditional rock climb in the world.</p>
+          <details><summary>Summary</summary><p>E11 tells the story behind the first ascent of Rhapsody, a route considered to be the hardest traditional rock climb in the world. Told in an offbeat drama-doc style the film attempts to understand what it takes to climb a route of this standard. E11 strives to get inside the head of its first ascentionist, the understated yet quite remarkable Dave MacLeod. Oh yeah, it&#x27;s also packed full of ankle-smashing, gear ripping, monster falls!</p></details>
+        </div>
+      </article>
+      <article class="card" id="m69">
+        <div class="thumb">
+          <span class="ph">Not Just Anna (Just Anna - Extras)</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/69de9b1ea225409b971589a93650c05f/Images/93bba1faaba24432892be5cf6ea5c0ef" alt="Not Just Anna (Just Anna - Extras)" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/69" data-title="Not Just Anna (Just Anna - Extras)" aria-label="Play Not Just Anna (Just Anna - Extras)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Not Just Anna (Just Anna - Extras)</h3>
+          <p class="short">Deep water solo summer fun with Neil Gresham and Anna Taylor.</p>
+          <details><summary>Summary</summary><p>Deep water solo summer fun with Neil Gresham and Anna Taylor. Prolific DWS developer Neil Gresham finds some fine lines at Hodge Close in the Lakes. Debutant Anna Taylor gets involved where she finds being 2m above the dark waters of Hodge Close more freighting than a trad E7.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m68">
+        <div class="thumb">
+          <span class="ph">A Dream of Edwin Drummond</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/29e6c8f93f774aafade63b5630f65740/Images/b866000de9734792a594d774a37d68fe" alt="A Dream of Edwin Drummond" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/68" data-title="A Dream of Edwin Drummond" aria-label="Play A Dream of Edwin Drummond"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>A Dream of Edwin Drummond</h3>
+          <p class="short">Homage to Edwin Drummond; a climber with philosophy, talent &amp; a uniquely individual approach.</p>
+          <details><summary>Summary</summary><p>Edwin Drummond was known for his poetic writings, bold first ascents and urban protest climbs; such as his 1978 anti-apartheid ascent of Nelson Column. He combined philosophy, talent and a greatly individual approach to leave an immense physical and literary legacy. The film makes use of archive material, reconstructions and animation to take you on a journey through the mind and climbs of one of the greatest characters to ever grace the UK climbing scene.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m67">
+        <div class="thumb">
+          <span class="ph">Storms</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/4457c19b96ca4e70b2953e8b04333bcf/Images/4449e1f5bb3b43249460c29b17c3f74a" alt="Storms" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/67" data-title="Storms" aria-label="Play Storms"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Storms</h3>
+          <p class="short">&quot;Storms&quot; is a first in climbing history. Finally, a climbing film without any climbing or narrative.</p>
+          <details><summary>Summary</summary><p>&quot;Storms&quot; is a first in climbing history. Finally, a climbing film without any climbing or narrative in this hysterical analysis of the modern climbing ethic. The onslaught of comedic sketches mirrors the achievements of our heroes. Features a battle scene, super-heroes, villains, insane caricatures, short animations and film parodies. Visually stunning, very funny, and slightly risque.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m66">
+        <div class="thumb">
+          <span class="ph">Twice Upon a Time in Boliva</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/6a0d78fa468646d292489a32b6f1f191/Images/b491f073816b4e838a78046cc3ffc25d" alt="Twice Upon a Time in Boliva" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/66" data-title="Twice Upon a Time in Boliva" aria-label="Play Twice Upon a Time in Boliva"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Twice Upon a Time in Boliva</h3>
+          <p class="short">Three no-hopers from Lancashire set out for Bolivia&#x27;s Cordillera Real in search of 6000m glory.</p>
+          <details><summary>Summary</summary><p>Three no-hopers from Lancashire&#x27;s grimmest corner (Burnley) set out for Bolivia&#x27;s Cordillera Real in search of 6000m glory. This hysterical journey begins with acclimatisation problems where one member of the team (Gaz Howell) turns into a Scouse Wookie whilst the others opt for the more tradition AMS. Stunning mountain routes (Pequena Alpamayo) take a side-line to the hilarious northern dead-pan humour which our team of lunatics use to overcome illness, frostbite and endless hours at base-camp. <br><br>Bandits, donkeys, climbing and full-frontal adventure, delightful!</p></details>
+        </div>
+      </article>
+      <article class="card" id="m65">
+        <div class="thumb">
+          <span class="ph">Set in Stone</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/81b5d566cb2d43f18a9332c2ef718fdd/Images/7a2d87031958450287f5ba6637ccba0c" alt="Set in Stone" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/81b5d566cb2d43f18a9332c2ef718fdd/Content/b72ef4fbac6040b580815272779119d2/manifest.m3u8" data-player="https://britrockplus.com/player/65" data-title="Set in Stone" aria-label="Play Set in Stone"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Set in Stone</h3>
+          <p class="short">SET IN STONE follows Dave Birkett&#x27;s remarkable passion for climbing on his beloved Lakeland crags.</p>
+          <details><summary>Summary</summary><p>SET IN STONE follows Dave&#x27;s remarkable passion for climbing and the pursuit for a magical line on his beloved Lakeland crags.<br><br>Featuring the first ascent of &#x27;Return of the King&#x27; E9 6c, Dave&#x27;s latest addition to Scafell&#x27;s East Buttress - just one of many Lakeland masterpieces including the extraordinary &quot;Nowt Burra Flee&#x27;in Thing&quot; (E8 6c) - Cam Crag, Wasdale Screes; a stunningly evocative line.<br><br>All filmed using innovative techniques, including &#x27;The Brief History of Birkett&#x27; animation which covers the 70-year Birkett family legacy.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m64">
+        <div class="thumb">
+          <span class="ph">Brazilian Line</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/e863d361e79747fc8507961e594a9f52/Images/c5df05357b294b1da5ff1b33a7b371c1" alt="Brazilian Line" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/e863d361e79747fc8507961e594a9f52/Content/ca7bbf6f68074f5fb21bd6aa56dee6ba/manifest.m3u8" data-player="https://britrockplus.com/player/64" data-title="Brazilian Line" aria-label="Play Brazilian Line"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Brazilian Line</h3>
+          <p class="short">A maverick bunch of Brits go big wall hunting in Brazil.</p>
+          <details><summary>Summary</summary><p>A maverick bunch of Brits go big wall hunting in Brazil. Lead by pioneering legend Mike ‘Twid’ Turner accompanied by Steve Long who invite some youth on the trip in the form of the super strong James Taylor and Angus Kille (Indian Face). The team head for the giant monolith of Pedra Baiana dreaming of a new line on perfect rock. From the outset the plan begins to unravel with fuel blockages, wasp attacks, a shortage of equipment and time, all pinning back progress in this spectacular, insightful and charming film.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m63">
+        <div class="thumb">
+          <span class="ph">Freeflow</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/3e430b2d91aa4669beb480ed5c9ac42f/Images/63cf523f8229493f96c3aef7cdcc17c7" alt="Freeflow" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/3e430b2d91aa4669beb480ed5c9ac42f/Content/76ed22e2788140d4b67aaa6e1a19b26c/manifest.m3u8" data-player="https://britrockplus.com/player/63" data-title="Freeflow" aria-label="Play Freeflow"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Freeflow</h3>
+          <p class="short">Hazel Findlay enjoys an epic day of running and solo climbing in the Welsh mountains of Snowdonia.</p>
+          <details><summary>Summary</summary><p>Hazel Findlay enjoys an epic day of mountain running and solo climbing in the Welsh mountains of Snowdonia. Stunning shots combine with a considered soundtrack underpinned by a subtle environmental message.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m61">
+        <div class="thumb">
+          <span class="ph">Boy</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/0eafeb8cdd164d779a7f7adda8c51f59/Images/60d56a0d38f843b19b47ccb5554d41a9" alt="Boy" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/61" data-title="Boy" aria-label="Play Boy"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Boy</h3>
+          <p class="short">The surreal, weird and hilarious world of Niall Grimes.</p>
+          <details><summary>Summary</summary><p>The surreal, weird and hilarious world of Niall Grimes.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m60">
+        <div class="thumb">
+          <span class="ph">iPaddle</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/7857e49c693446cb99e6f691af7a3cd7/Images/77d602a2287849b382c32648ca63dc65" alt="iPaddle" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/60" data-title="iPaddle" aria-label="Play iPaddle"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>iPaddle</h3>
+          <p class="short">The adventure spoof spectacular iPaddle featuring the inimitable David Halsted.</p>
+          <details><summary>Summary</summary><p>The adventure spoof spectacular iPaddle featuring the inimitable David Halsted.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m59">
+        <div class="thumb">
+          <span class="ph">National Acrobat - Grit Flick</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/1c7b175229ff479093b2eb3e4b72a42f/Images/ad63f9ac1d7e48d0a1632d8b6142bb17" alt="National Acrobat - Grit Flick" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/59" data-title="National Acrobat - Grit Flick" aria-label="Play National Acrobat - Grit Flick"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>National Acrobat - Grit Flick</h3>
+          <p class="short">Ground-up action as Ben Bransby and James McHaffie tackle &#x27;National Acrobat&#x27; at Ramshaw Rocks.</p>
+          <details><summary>Summary</summary><p>Ground-up action as Ben Bransby and James McHaffie tackle ‘one of the meanest sections of climbing on grit anywhere’ with &#x27;National Acrobat&#x27; at Ramshaw Rocks.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m58">
+        <div class="thumb">
+          <span class="ph">Little Peculiar - Grit Flick</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/98f94540ccb94d438a8fb7cfe13fff29/Images/97e3a8acd97e4acfa925d5f757389204" alt="Little Peculiar - Grit Flick" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/58" data-title="Little Peculiar - Grit Flick" aria-label="Play Little Peculiar - Grit Flick"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Little Peculiar - Grit Flick</h3>
+          <p class="short">&#x27;Grit Kid&#x27; Pete Whittaker makes the second ascent of &#x27;A Little Peculiar&#x27; weighing in at British 7b.</p>
+          <details><summary>Summary</summary><p>Enjoy the bizarre capabilities of &#x27;Grit Kid&#x27; Pete Whittaker as he makes the second ascent of &#x27;A Little Peculiar&#x27; weighing in at British 7b, featuring one of the hardest moves of its type in the world.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m57">
+        <div class="thumb">
+          <span class="ph">Rylstone - Grit Flick</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/9703093b1d8a45a78df6e125377918a2/Images/c5e7286dbd6b4fe98074fc5dc1df01eb" alt="Rylstone - Grit Flick" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/57" data-title="Rylstone - Grit Flick" aria-label="Play Rylstone - Grit Flick"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Rylstone - Grit Flick</h3>
+          <p class="short">One of gritstone&#x27;s unsung heroes Ben Bransby with his first ascent of a stunning highball boulder.</p>
+          <details><summary>Summary</summary><p>One of gritstone&#x27;s unsung heroes Ben Bransby with his first ascent of a stunning highball boulder problem at Rylstone, Yorkshire.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m56">
+        <div class="thumb">
+          <span class="ph">Gerty Berwick - Grit Flick</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/4b16af98d24e4417be1cd1bd25636289/Images/59f930f3cb2c45288b31fc926553ef78" alt="Gerty Berwick - Grit Flick" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/56" data-title="Gerty Berwick - Grit Flick" aria-label="Play Gerty Berwick - Grit Flick"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Gerty Berwick - Grit Flick</h3>
+          <p class="short">A line that has been touted by gritstone guru John Dunne as &#x27;the hardest route on grit&#x27;.</p>
+          <details><summary>Summary</summary><p>A line that has been touted by gritstone guru John Dunne as &#x27;the hardest route on grit&#x27; as Ryan Pasquill makes the first ascent of the outrageously difficult &#x27;Gerty Berwick&#x27; - the blank wall to the left of &#x27;The New Statesman&#x27; at Ilkley, Yorkshire.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m55">
+        <div class="thumb">
+          <span class="ph">Widdop Wall - Grit Flick</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/f0f71abc4c2049149cb948f3e70652ee/Images/6f84cbe8d2d3448488eb93544aa559b1" alt="Widdop Wall - Grit Flick" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/55" data-title="Widdop Wall - Grit Flick" aria-label="Play Widdop Wall - Grit Flick"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Widdop Wall - Grit Flick</h3>
+          <p class="short">Jordan Buy&#x27;s second ascent of the coveted Widdop Wall, first climbed by John Dunne in 1998.</p>
+          <details><summary>Summary</summary><p>Jordan Buy&#x27;s second ascent of the coveted Widdop Wall, first climbed by John Dunne in 1998.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m54">
+        <div class="thumb">
+          <span class="ph">Slab and Crack - Grit Flick</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/dfe84cc37b8b497c9c7d309830ea81f7/Images/27834632115c4920825db4fb6b1920fe" alt="Slab and Crack - Grit Flick" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/54" data-title="Slab and Crack - Grit Flick" aria-label="Play Slab and Crack - Grit Flick"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Slab and Crack - Grit Flick</h3>
+          <p class="short">Lucy Creamer stars in the hardest UK female ascent of a gritstone route;  &#x27;Slab and Crack&#x27;.</p>
+          <details><summary>Summary</summary><p>Lucy Creamer stars in the hardest UK female ascent of a gritstone route as Lucy tries her luck on &#x27;Slab and Crack&#x27; E8 at Cubar, Peak District.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m53">
+        <div class="thumb">
+          <span class="ph">Brimham Rocks -  Grit Flick</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/32e6710572844cd08232f5277924dc33/Images/36ea4a597d264b5f8ad8a0005fd84ae9" alt="Brimham Rocks -  Grit Flick" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/53" data-title="Brimham Rocks -  Grit Flick" aria-label="Play Brimham Rocks -  Grit Flick"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Brimham Rocks -  Grit Flick</h3>
+          <p class="short">Grit gets esoteric at Brimham Rocks with a desperate E7 on sight by James McHaffie.</p>
+          <details><summary>Summary</summary><p>Grit gets esoteric at Brimham Rocks with a desperate E7 on sight by James McHaffie. Supported by comedy sidekick Jack Geldard.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m52">
+        <div class="thumb">
+          <span class="ph">Dusk Till Dawn</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/baf41fd511904149b04118c5d579c4b9/Images/4918641b43ef4de0b8573756ebc0a101" alt="Dusk Till Dawn" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/52" data-title="Dusk Till Dawn" aria-label="Play Dusk Till Dawn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Dusk Till Dawn</h3>
+          <p class="short">Pembrokeshire explorer extraordinaire Dave Pickford climbs his stunning new route &#x27;Dusk till Dawn&#x27;.</p>
+          <details><summary>Summary</summary><p>Pembrokeshire explorer extraordinaire Dave Pickford climbs his stunning new route &#x27;Dusk till Dawn&#x27; in the impressive Huntsman&#x27;s Leap. Feel Dave&#x27;s passion for Pembrokeshire climbing as he shares his views on the route and wider thoughts on climbing.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m51">
+        <div class="thumb">
+          <span class="ph">Hollow Caves - DWS</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/a762630d8c7d41a5a631818ca3ccde9e/Images/dba8726139a54b56a780369e9b287aba" alt="Hollow Caves - DWS" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/51" data-title="Hollow Caves - DWS" aria-label="Play Hollow Caves - DWS"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Hollow Caves - DWS</h3>
+          <p class="short">Neil Gresham shows us what it&#x27;s all about with one of the UK&#x27;s hardest deep water solos</p>
+          <details><summary>Summary</summary><p>Deep water solo protagonist Neil Gresham shows us what it&#x27;s all about with one of the UK&#x27;s hardest deep water solos to date, superb climbing in the stunning setting of Pembrokeshire. &#x27;Neil&#x27;s body double&#x27;; Liam Cook adds to the entertainment with some big splashes as he attempts routes he&#x27;s no business being on.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m50">
+        <div class="thumb">
+          <span class="ph">Bleed in Hell</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/9bf99798b76946649f4a49f345fec51b/Images/2e409d4565e147c49a6e8641f4191083" alt="Bleed in Hell" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/50" data-title="Bleed in Hell" aria-label="Play Bleed in Hell"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Bleed in Hell</h3>
+          <p class="short">Mary Jenner repeats the Borrowdale classic &#x27;Bleed in Hell&#x27; E8 6c.</p>
+          <details><summary>Summary</summary><p>Mary Jenner repeats the Borrowdale classic &#x27;Bleed in Hell&#x27; resulting in the hardest trad route climbed by a female in the UK. Including insightful commentary from the route&#x27;s first ascensionist and Mary&#x27;s husband - Dave Birkett.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m49">
+        <div class="thumb">
+          <span class="ph">Father of the Pride</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/db3c4495258b4f219b0d61233edf61f5/Images/9f7ad73122ba453ca84dd9c9f77cbca0" alt="Father of the Pride" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/49" data-title="Father of the Pride" aria-label="Play Father of the Pride"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Father of the Pride</h3>
+          <p class="short">Simon Lee gets on the grit at age 5.</p>
+          <details><summary>Summary</summary><p>Simon Lee gets on the grit at age 5.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m48">
+        <div class="thumb">
+          <span class="ph">Steve&#x27;s Massive Malham Link Up</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/2f186a1c26a6473a866668fa1d807b29/Images/38513a0fa09146b0b2b85310cddc966a" alt="Steve&#x27;s Massive Malham Link Up" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/48" data-title="Steve&#x27;s Massive Malham Link Up" aria-label="Play Steve&#x27;s Massive Malham Link Up"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Steve&#x27;s Massive Malham Link Up</h3>
+          <p class="short">&#x27;Bat shadow&#x27; - Steve McClure on his impressive 8c+ link up at Malham.</p>
+          <details><summary>Summary</summary><p>&#x27;Bat Shadow&#x27; - Steve McClure on his impressive 8c+ link up at Malham.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m47">
+        <div class="thumb">
+          <span class="ph">High Tor</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/d689051fc09f4bd497a9e034bb566a40/Images/948cb6b6c851467ab5b24b7323d65aa0" alt="High Tor" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/47" data-title="High Tor" aria-label="Play High Tor"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>High Tor</h3>
+          <p class="short">&#x27;High Tor with an Actor&#x27; - tongue in cheek short featuring Giles Cornah at High Tor.</p>
+          <details><summary>Summary</summary><p>&#x27;High Tor with an Actor&#x27; - tongue in cheek short featuring Giles Cornah at High Tor.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m46">
+        <div class="thumb">
+          <span class="ph">Oceans of Fear</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/f272a1ed80fe4637958efb67622eb0cf/Images/6ce6382012ff400381413307e170fdd7" alt="Oceans of Fear" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/46" data-title="Oceans of Fear" aria-label="Play Oceans of Fear"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Oceans of Fear</h3>
+          <p class="short">This time we follow Leo Houlding on his life long dream of climbing a big wall in South Africa.</p>
+          <details><summary>Summary</summary><p>This time we follow Leo Houlding on his life long dream of climbing a big wall in South Africa as he makes a fast repeat of the incredible &#x27;Oceans of Fear&#x27; in the stunning Klein Winter Hoek.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m45">
+        <div class="thumb">
+          <span class="ph">Magic Numbers</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/f94358daaede4c779c05c67abf878466/Images/ad99ddf240cc4f4c8ab98fbe270a1b2e" alt="Magic Numbers" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/f94358daaede4c779c05c67abf878466/Content/c1009fd2f7d844c69f7ad8d5bf8bbdd0/manifest.m3u8" data-player="https://britrockplus.com/player/45" data-title="Magic Numbers" aria-label="Play Magic Numbers"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Magic Numbers</h3>
+          <p class="short">Steve McClure is Britain&#x27;s most accomplished sport climber find out why in this profile.</p>
+          <details><summary>Summary</summary><p>Steve McClure is Britain&#x27;s most accomplished sport climber as the awesome action footage in this profile demonstrates. Featuring Steve on his many 9a&#x27;s at Britain&#x27;s steepest limestone crags including his latest Kilnsey crimpfest. Plus an 8c first ascent and an 8b flash during the late hours of a French climbing festival, party!</p></details>
+        </div>
+      </article>
+      <article class="card" id="m44">
+        <div class="thumb">
+          <span class="ph">Skye Wall</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/576068c4553f4cfc9569b3683ea4cb02/Images/8df9098d7da4460ba8af8c80549c583a" alt="Skye Wall" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/576068c4553f4cfc9569b3683ea4cb02/Content/bb638d8dc6e94f50ba9ee29a8fc6d229/manifest.m3u8" data-player="https://britrockplus.com/player/44" data-title="Skye Wall" aria-label="Play Skye Wall"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Skye Wall</h3>
+          <p class="short">Dave Birkett goes in search of his dream line in the remote setting of Skye&#x27;s famous Cuillin Range.</p>
+          <details><summary>Summary</summary><p>Dave Birkett goes in search of his dream line in the remote setting of Skye&#x27;s famous Cuillin Range. This stunning and gripping adventure results in one of the year&#x27;s most significant first ascents; Skye Wall E8 6b.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m43">
+        <div class="thumb">
+          <span class="ph">Patagonia Winter</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/67f9775cf16e4df4a0f1c5b9ac0801f3/Images/6d6f61d70327428398eec788d825dd13" alt="Patagonia Winter" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/67f9775cf16e4df4a0f1c5b9ac0801f3/Content/a847519839c54d22a4d7ed981e8cc0cc/manifest.m3u8" data-player="https://britrockplus.com/player/43" data-title="Patagonia Winter" aria-label="Play Patagonia Winter"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Patagonia Winter</h3>
+          <p class="short">Watch the alpine classic from 2007. 0% climbing 100% hilarity.</p>
+          <details><summary>Summary</summary><p>Watch the alpine classic from 2007. Andy Kirkpatrick is a pioneer of winter climbing in Patagonia with many hair-raising ascents to his name. This hilarious film documents his 2007 Patagonian horror show; an attempt at the first winter ascent of Torre Egger with fellow alpinist Ian Parnell. The rib-tickling character development of these two off-the-wall characters is followed by their efforts under Torre Egger going from bad to worse to &#x27;we&#x27;ve-been-stuck-under-this-rock-for -four-days&#x27;. As touching and insightful as it is entertaining. 0% climbing 100% hilarity.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m41">
+        <div class="thumb">
+          <span class="ph">Moonflower</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/5c3d7c3ecffd4da5a2e56124353e0906/Images/bd2f684e1afb4ecd8f8e6b3e0b6d48ef" alt="Moonflower" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/41" data-title="Moonflower" aria-label="Play Moonflower"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>Moonflower</h3>
+          <p class="short">Take a front-seat ride during a first ascent on one of the world&#x27;s biggest alpine faces.</p>
+          <details><summary>Summary</summary><p>Take a front seat ride and experience what it takes to make a first ascent on one of the world&#x27;s biggest alpine faces in 2011. MOONFLOWER joins top British alpinists Jon Bracey and Matt Helliker as they honor their late friend Jules Cartwright by following his original vision of making a stunning and formidable new line on Mt Hunter&#x27;s incredible north buttress - &#x27;The Moonflower&#x27;.<br><br>Climbing the steepest and coldest section of the buttress; marvel at the dogged determination of the world-class climbers as they approach exhaustion in an effort to complete the line before the increasingly freezing conditions irrevocably turn against them. The fruits of their efforts result in &#x27;The Cartwright Connection&#x27; Ca 6000ft, Alaskan grade 6 (M6, AI6, 5.8, A2).<br><br>The adventure is filmed by the climbers themselves giving a unique insight into cutting edge alpinism. Adventure cameraman David Reeves contributes to the cinematic experience with his stunning mountain timelapses and ariel footage.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m40">
+        <div class="thumb">
+          <span class="ph">Whiz Kid - Rainshadow</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/1c3aa81d4869419fa566f3ef68a47a5a/Images/b00096d34c364799b29b29777876be7b" alt="Whiz Kid - Rainshadow" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/1c3aa81d4869419fa566f3ef68a47a5a/Content/d6afcb73ed1b461299dae44bb8fe7bf8/manifest.m3u8" data-player="https://britrockplus.com/player/40" data-title="Whiz Kid - Rainshadow" aria-label="Play Whiz Kid - Rainshadow"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Whiz Kid - Rainshadow</h3>
+          <p class="short">At the age of just 17, William Bosi became the youngest Brit to climb the ultimate magic grade: 9a.</p>
+          <details><summary>Summary</summary><p>In 2016 at the age of just 17, William Bosi became the youngest Brit to climb the ultimate magic grade: 9a. Whiz Kid: follows William’s journey to climb Steve McClure’s Malham test piece, Rainshadow. Documented in an observational style the film gently reveals what it takes to climb at this level.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m39">
+        <div class="thumb">
+          <span class="ph">Just Anna</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/e3080d6dd9114274b423e207408f10a3/Images/9b4d57dcbc6540b38d74fc806822c82a" alt="Just Anna" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/e3080d6dd9114274b423e207408f10a3/Content/c33e54627a2146eeb4ed86ddc7c9a6ca/manifest.m3u8" data-player="https://britrockplus.com/player/39" data-title="Just Anna" aria-label="Play Just Anna"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Just Anna</h3>
+          <p class="short">Anna unearths a stunning unclimbed line which proves to be a personal step up.</p>
+          <details><summary>Summary</summary><p>In an era where searching out and developing new routes seems out of vogue: all is not lost as we meet Anna Taylor. This remarkable Lakes-based 20-year-old is bucking all the tends with stunning new sport routes and bold traditional lines. Anna unearths a stunning unclimbed line which proves to be a personal step up in terms of difficulty and boldness. The film follows all the challenges and difficulties with Anna on her journey to make the first ascent of the line, however all does not go to plan as the word gets out about the line.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m38">
+        <div class="thumb">
+          <span class="ph">Blood Moon</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/319acbe899574cd689f8d4321728ed9d/Images/bba39ff35f714fc89e5fe8d98762b828" alt="Blood Moon" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/319acbe899574cd689f8d4321728ed9d/Content/7e5226c557fc453fa7d19b13b6ebc87f/manifest.m3u8" data-player="https://britrockplus.com/player/38" data-title="Blood Moon" aria-label="Play Blood Moon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Blood Moon</h3>
+          <p class="short">Robbie Phillips and pals attempt to open a new climb, ground up, on a 700m Big Wall in Madagascar.</p>
+          <details><summary>Summary</summary><p>The film follows Robbie Phillips, Calum Cunningham and Alan Carne as they attempt to open a new climb, ground up, on a 700m Big Wall called Tsaranoro Atsimo in Madagascar.<br><br>The walls of Tsaranoro are as wild and bold as the country, the rock beautifully carved as if by providential hand, and the story... that of a real adventure of friends taking the risks that come hand in hand with pushing boundaries.<br><br>Once the free climbing begins disaster strikes, Alan takes a bad fall shattering his lower right leg, an epic ordeal unfolds to get Alan from the remote big wall to safety. From here the mood changes, Robbie and Calum are left with some big questions and bigger fears as they must decide whether to continue with their push or give in to their emotions as they learn the hardest way possible what it takes to open a Big Wall on one of the sheerest vertical faces in Africa.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m37">
+        <div class="thumb">
+          <span class="ph">Wainwrights Record Attempt</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/d7322dd6ac6040e29d3b3b0ac4e43b6a/Images/33dac73b5533426fac39e05b8d1d1e24" alt="Wainwrights Record Attempt" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/d7322dd6ac6040e29d3b3b0ac4e43b6a/Content/e1b91372539642e99576de787a4e6ee6/manifest.m3u8" data-player="https://britrockplus.com/player/37" data-title="Wainwrights Record Attempt" aria-label="Play Wainwrights Record Attempt"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Wainwrights Record Attempt</h3>
+          <p class="short">Steve Birkenshaw attempts to break the 27-year-old record in under seven days.</p>
+          <details><summary>Summary</summary><p>The unassuming and unlikely Steve Birkinshaw is one of the great fell runners. In this Lakeland tale of epic proportions, family-man Steve turns to the people’s champion as an inspirational figure through this extraordinary challenge. Have your mind and arteries blown as Steve attempts to break the legendary Joss Naylor&#x27;s 27 year old record by linking up all 214 Lakeland Wainwright summits in under seven days. A level of suffering breaching into the super-human. This wholesome, touching and personal account will not fail to leave you uplifted and believing anything is possible. We share every high and low as Steve questions his motives and battles on through 20 hour days with little or no sleep. Blister hell, dehydration, searing heat and tendonitis are just some of the obstacles between Steve and a place in fell running history.<br><br>Essentially this is not a story about fell running but of the relentless human spirit.<br><br>THE WAINWRIGHTS IN NUMBERS<br>214 Lakeland summits, 320 miles, 36,000m of ascent.<br>The equivalent of 2 marathons a day, up and down Everest 4 times.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m36">
+        <div class="thumb">
+          <span class="ph">Stone Free - Portrait of a Soloist</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/fceb62776d324d0e9db07caaf8a08a27/Images/51e6a02923bc4fd4bf8f32c0ba980bb2" alt="Stone Free - Portrait of a Soloist" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/fceb62776d324d0e9db07caaf8a08a27/Content/314f4ef89cb948688765a7f5cab24572/manifest.m3u8" data-player="https://britrockplus.com/player/36" data-title="Stone Free - Portrait of a Soloist" aria-label="Play Stone Free - Portrait of a Soloist"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Stone Free - Portrait of a Soloist</h3>
+          <p class="short">This deeply personal account is a stunning portrait that will leave your jaw on the floor.</p>
+          <details><summary>Summary</summary><p>Julian Lines is the best climber you&#x27;ve never heard of. He is undoubtedly Britain&#x27;s most accomplished free climbing soloist with world-class free ascents to his name. This deeply personal account of the archetypal anti-hero is a stunning portrait that will leave your jaw on the floor.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m35">
+        <div class="thumb">
+          <span class="ph">All My Own Stunts</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/889386234fbb4c18b1703e6a79e1628b/Images/6cfb38093af24d588bd21052ad076b52" alt="All My Own Stunts" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/889386234fbb4c18b1703e6a79e1628b/Content/6cf3f4b833f04ea8bc18c5423d7517a3/manifest.m3u8" data-player="https://britrockplus.com/player/35" data-title="All My Own Stunts" aria-label="Play All My Own Stunts"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>All My Own Stunts</h3>
+          <p class="short">This gripping &amp; emotional film tells the story of a near-fatal accident and Rob&#x27;s road to recovery.</p>
+          <details><summary>Summary</summary><p>Yorkshireman Rob Jarman is a downhill mountain bike specialist and professional stuntman. This gripping and emotional film tells the story of a near-fatal accident and his road to recovery where he sets his sights on a UK downhill speed record. Redoubtable, affable and hilarious, it&#x27;s a compelling ride with Rob Jarman, on, and more often than not, off his bike.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m34">
+        <div class="thumb">
+          <span class="ph">The Big Deal</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/2de40085359d4a83b8db64a6495dbd50/Images/f0c6b4f1895448b7a3d5a606f2eb92f5" alt="The Big Deal" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="" data-player="https://britrockplus.com/player/34" data-title="The Big Deal" aria-label="Play The Big Deal"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          
+        </div>
+        <div class="body">
+          <h3>The Big Deal</h3>
+          <p class="short">Bouldering short from the Brit Rock Film Tour 2019 &#x27;The Big Deal&#x27; featuring Frances Bensley.</p>
+          <details><summary>Summary</summary><p>Bouldering short from the Brit Rock Film Tour 2019 &#x27;The Big Deal&#x27; featuring superstar boulderer Frances Bensley.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m33">
+        <div class="thumb">
+          <span class="ph">The Prophet</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/6ec9cd5f44f14b68af74de16ac4564cf/Images/bcf1e4515db949feaccc8ae3c20b82ff" alt="The Prophet" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/6ec9cd5f44f14b68af74de16ac4564cf/Content/6fe7c8758e2c43248c71dc05de07742f/manifest.m3u8" data-player="https://britrockplus.com/player/33" data-title="The Prophet" aria-label="Play The Prophet"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>The Prophet</h3>
+          <p class="short">Following Leo Houlding as he revisits his 10 year project - &#x27;The Prophet&#x27; on Yosemite&#x27;s El Cap.</p>
+          <details><summary>Summary</summary><p>Following the UK&#x27;s top big wall climber Leo Houlding as he revisits his 10 year project - &#x27;The Prophet&#x27;, an exceptionally steep, loose and difficult route on the east face of Yosemite&#x27;s El Cap. Leo describes the route as &#x27;The wildest climb I&#x27;ve ever been on&#x27;. This has to be seen to be believed, crazy climbing.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m32">
+        <div class="thumb">
+          <span class="ph">On Sight</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/2e8ed730e1b24f458b1228b3c32f1ce2/Images/e11b9c88347f44b2a1e3f576bb53d5b9" alt="On Sight" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/cc2728094ec64631b039b26224063ecd/Assets/2e8ed730e1b24f458b1228b3c32f1ce2/Content/d5c090b440ba4ad9a901bf70bee020e1/manifest.m3u8" data-player="https://britrockplus.com/player/32" data-title="On Sight" aria-label="Play On Sight"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>On Sight</h3>
+          <p class="short">The climbers in this film aren’t necessarily the strongest but they have the biggest &#x27;kahooners&#x27;...</p>
+          <details><summary>Summary</summary><p>ON SIGHT is a gripping adventure into the world of cutting edge rock and ice climbing - documenting what is possible with a ground up, no pre-practice approach resulting in raw, compelling and often frightening footage. The climbers in this film aren’t necessarily the strongest but they have the biggest &#x27;kahooners&#x27; - willing to take a 30 foot fall for the ultimate on sight ascent.<br><br>In the age of indoor gym climbing and pre-practiced ascents,&#x27;On Sight&#x27; gets back to the basics of climbing, the simple game of getting to the top using only your strength, skill and bottle! &#x27;On Sight&#x27; features an all star cast in spectacular locations on extraordinary routes: Pete Robins, James McHaffie, Leo Houlding, Adam Long, Ricky Bell, Dave Birkett, Ian Parnell, Neil Gresham, Jordan Buys, Gaz Parry, Ben Bransby, Jack Geldard, Jon Winters, Nick Bullock, Nico Faverese, Neil Dickson, John Redhead, Jerry Moffet and Ron Fawcett.<br><br>ON LOCATION IN:<br>ICELAND- Ian Parnell and Neil Gresham ice climbing at Kaldakinn.<br>IRELAND - Ricky Bell amazing first ascent on the huge Fairhead seacliffs.<br>SCOTLAND - Insane winter climbing with Ian Parnell and Jon Winters.<br>NORTH WALES - Gogarth E8 on sight attempts, grade myths are shattered in Llanberris Pass, first ground up ascents at Cloggy as well as the story of &#x27;Strawberries&#x27; a notoriously un-on-sightable route! Gritstone ground up; Pete Robins, Jordan Buys and Leo Houlding.<br><br>Seeking true adventure, delving into the unknown, revelling in uncertainty.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m31">
+        <div class="thumb">
+          <span class="ph">The Asgard Project </span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/b8d9c9038e204ed2a4b1a6c511ba6460/Images/c6b47d280a824b5e827f8c57d9145689" alt="The Asgard Project " onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/cc2728094ec64631b039b26224063ecd/Assets/b8d9c9038e204ed2a4b1a6c511ba6460/Content/1e77015cc7fd4808934da5c567fc29f7/manifest.m3u8" data-player="https://britrockplus.com/player/31" data-title="The Asgard Project " aria-label="Play The Asgard Project "><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>The Asgard Project </h3>
+          <p class="short">Leo Houlding&#x27;s ambitious project to climb Mount Asgard and then wingsuit from the summit.</p>
+          <details><summary>Summary</summary><p>Leo Houlding&#x27;s ambitious project to make a first free ascent on the North Tower of the incredible &#x27;Mount Asgard&#x27; on Baffin Island deep in the Arctic. Leo teams up with fellow big wall climbing god Sean &#x27;Stanley&#x27; Leary, the duo hope to make a wingsuit descent from the summit after the climb.<br><br>Prior to the Baffin trip we embark on training trips to Riglos in Spain, Brento in Italy and El Cap in Yosemite. Arriving late in the Arctic season the trip soon begins to go wrong. After a spectacular arrival skydiving past Mt Asgard into basecamp, the conditions turn against the team where just reaching the base of the climb becomes a massive challenge in itself. <br><br>This groundbreaking film, documents a truly cutting-edge adventure with all its highs, lows, twists and turns.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m29">
+        <div class="thumb">
+          <span class="ph">The Last Great Climb</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/ff331953bca64219a53564ffaf43dc19/Images/6040d0b93ecf4aaa993980a410cb7c15" alt="The Last Great Climb" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/ff331953bca64219a53564ffaf43dc19/Content/b0ff2f7ba4cc420cabbf7fa66b4ee991/manifest.m3u8" data-player="https://britrockplus.com/player/29" data-title="The Last Great Climb" aria-label="Play The Last Great Climb"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>The Last Great Climb</h3>
+          <p class="short">Leo Houlding and team attempt one of the proudest lines in Queen Maud Land, Antarctica.</p>
+          <details><summary>Summary</summary><p>THE LAST GREAT CLIMB set in the stunning mountains of Queen Maud Land, Antarctica.<br><br>The 2013 film follows top adventure climber Leo Houlding with his tried and tested team of Jason Pickles and Sean ‘Stanley’ Leary as they attempt to make the first ascent of the NE ridge of &#x27;the master piece of the range&#x27; - the majestic &#x27;Ulvetanna Peak&#x27; (2931m). One of the most technically demanding climbs in the world’s harshest environment. The film tells the story of a climber&#x27;s life long dream reach one of the world&#x27;s most remote and difficult summits, interweaved with the fascinating story of the mountain itself - which incredibly was only discovered in 1994. All set against the backdrop of the current age of mountaineering where few great lines remained unclimbed.<br><br>Every inch of this daring journey is captured by multi-award winner Alastair Lee as we get to know the redoubtable and hilarious team. The crew experience unprecedentedly good weather but eventually the Antarctic conditions begin to grind them down as inevitably the conditions become &#x27;less favourable&#x27; whilst they attempt to defy the odds and complete the climb. Including interviews from Sir Chris Bonington, as well as Norwegian climbers Ivar Tolleffsen &amp; Robert Caspersen, who first explored the area in 1994.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m28">
+        <div class="thumb">
+          <span class="ph">Autana</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/d4a32b434d814e1ea118c33b531d9100/Images/4d17df9b709e4e77830c3d18036479fc" alt="Autana" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/d4a32b434d814e1ea118c33b531d9100/Content/8f4cfe5f36ee409a910fa1cedca7202d/manifest.m3u8" data-player="https://britrockplus.com/player/28" data-title="Autana" aria-label="Play Autana"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Autana</h3>
+          <p class="short">Leo &amp; team head into the Amazon to make the first ascent of the east face of the remote tepuy.</p>
+          <details><summary>Summary</summary><p>Leo Houlding (UK) and fellow climbers Sean Leary (USA) and Jason Pickles (Salford) head deep into the Amazon in an attempt to make the first ascent of the east face of the remote tepuy, &#x27;Cerro Autana&#x27;.<br><br>The action beings with a covert journey via military check-points and secret ports through Amazonas State. Our team of clandestine climbers disguised as tourists travel down the Orinoco River to the remote village of Ceguera where they make a traumatic psychotropic visit to the local Shaman to gain access to the sacred mountain. From here sweltering humidity, porter chaos and an assortment of jungle nastiest are just a part of this spectacular journey of self-discovery and big wall hunting. Follow our team of redoubtable characters as they find their way up the jungle infested rock face as they are amazed not only at the climbing but a luxury wall camp in the incredible Autana Cave system just below the summit of the tepuy (highest elevated cave system in the world). <br><br>AUTANA is an adventure unlike any other - adventure film-making takes another step into the unknown with superb results. Original, experimental, entertaining and visually stunning.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m27">
+        <div class="thumb">
+          <span class="ph">Citadel</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/12b75eeefaca4b91ab5d046d4b2344ce/Images/b4b1917e442b407687c23430ac42522e" alt="Citadel" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/12b75eeefaca4b91ab5d046d4b2344ce/Content/81a45ddf48f24719ab013499e57752f8/manifest.m3u8" data-player="https://britrockplus.com/player/27" data-title="Citadel" aria-label="Play Citadel"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Citadel</h3>
+          <p class="short">Matt Helliker and Jon Bracey attempt the extraordinary 1200m long nw ridge of the CItadel in Alaska.</p>
+          <details><summary>Summary</summary><p>Dubbed ‘The Mountain God’, the &#x27;Citadel&#x27; is a stunning 3000m peak in one of the remaining untouched corners of the Great Alaskan Range: The Neacola Mountains. Due to their typically poor conditions and remote location are largely unexplored. Matt Helliker and Jon Bracey are one the UK&#x27;s most formidable partnerships in alpine climbing with many world-class ascents to their names from the UK to the Alps and the greater ranges. Their objective is to make the first ascent of the extraordinary 1200m long north-west ridge.<br><br>Adventure film-maker Alastair Lee embarked upon this project with the objective to push the boundaries and capture hard alpine climbing like never before. Employing the latest Cineflex technology combined with an innovative vision the final results are truly incredible - the next dimension in mountain film, &#x27;Citadel&#x27; is a stunning visual experience. To match its visual prowess&#x27; Citadel&#x27; is laced with a strong sense of narrative. Like all good stories it is character driven and centres around one of the most unlikely yet successful partnerships in world alpinism. That of Matt Helliker and Jon Bracey. The stage is set for why two accomplished mountaineers must still seek out new lines in unchartered territory where the odds are stacked heavily against them. We take a front-seat ride and are with Matt and Jon every step of the way through all the hardships and struggles, hopes and disappointments. What unfolds is a classic narrative arc where success is snatched from the jaws of defeat.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m26">
+        <div class="thumb">
+          <span class="ph">Blocheads</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/61668a50ee894760af0c21fb3f524c32/Images/90a098c56a764a499324f671feef8bc0" alt="Blocheads" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/61668a50ee894760af0c21fb3f524c32/Content/ddcf9267b7ac45aeb262ca505ec69ebb/manifest.m3u8" data-player="https://britrockplus.com/player/26" data-title="Blocheads" aria-label="Play Blocheads"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Blocheads</h3>
+          <p class="short">An all action cinematic spectacular, revelling in the UK’s golden age of bouldering.</p>
+          <details><summary>Summary</summary><p>An all action cinematic spectacular, revelling in the UK’s golden age of bouldering.<br><br>Never before have there been so many indoor walls; so many climbers obsessed with training; so many beasts of superhuman strength. That talent is not going to waste. We follow the fearsomely strong Blocheads as they quest for new lines and push the limits of human ability. It’s a story of adventure, rocky passions and mutant fingers. It’s the story of a search for bouldering gold.<br><br>There’s history too – we delve into bouldering’s murky past. Once it was just a bit of fun outside the climbing hut. Now it’s ‘a thing’. From the first recorded bouldering in the 19th century, through to the rise of bouldering as a sport, something happened while the traditional climbers weren’t watching. There has been a movement in the force.<br><br>We tell the story of the UK’s first outdoor boulder comp, an up-yours to the establishment organised by 70’s developer Jerry Peel. We learn about the Godfather John Gill, and how he influenced a young Jerry Moffatt, the first of a new wave of rockstars who helped shape the modern world of bouldering. Blocheads includes numerous first ascents, off-the-scale gnarly moves and hair-raising highballs. Sumptuous production. Historical garnish. Anarchy. Daft bits. Awesome bits. Watch it.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m25">
+        <div class="thumb">
+          <span class="ph">Fall Theory</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/2cc7875d8e6b45d5bc1da5437d0a2423/Images/27ae621abc5d4828abfc8ad670e374c5" alt="Fall Theory" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/2cc7875d8e6b45d5bc1da5437d0a2423/Content/96ce3273480d46ffabd6b8f9ec1a415c/manifest.m3u8" data-player="https://britrockplus.com/player/25" data-title="Fall Theory" aria-label="Play Fall Theory"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Fall Theory</h3>
+          <p class="short">The notorious Franco seeks to climb a dangerous new line... spare trousers recommended.</p>
+          <details><summary>Summary</summary><p>Franco Cookson burst onto the climbing scene over 10 years ago and has been leaving an indelible mark ever since. His early career in particular played out in an unusually public manner on the UK’s climbing forums, where his hard and bold first ascents on his home ground of the North York Moors would often receive much skeptical analysis. In 2017 Franco made the first ascent of ‘Nothing Lasts’ in Northumberland, an almost unfathomably dangerous route. The film follows the notorious Franco on his latest journey to climb an even harder line where the weight of previous successes hangs heavily on Franco’s mind, that and the laughable protection combined with moves he can’t yet do. This feature documentary takes an in-depth look into Franco’s past and the workings of his fascinating mind. Featuring understudy 15-year-old Tom Pearce who looks to repeat some of Franco’s routes adding another layer of intrigue. Tapping into Franco’s extensive archive we relive some truly jaw-dropping moments during Franco’s prolific career. Madman or genius? Decide for yourself with this enthralling watch, spare trousers recommended.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m24">
+        <div class="thumb">
+          <span class="ph">Lexicon E11</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/b8e617d28ef847079f5413b55b3bc1b9/Images/0c6efba3b6814444a3ae41b61f11e445" alt="Lexicon E11" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/b8e617d28ef847079f5413b55b3bc1b9/Content/c7d8920bb2074f968239ef72241a004e/manifest.m3u8" data-player="https://britrockplus.com/player/24" data-title="Lexicon E11" aria-label="Play Lexicon E11"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Lexicon E11</h3>
+          <p class="short">Accomplished climber Neil Gresham realises his hardest traditional project; Lexicon.</p>
+          <details><summary>Summary</summary><p>Accomplished all-round climber Neil Gresham seems to be the fine wine of UK climbing; at 50 he realises his hardest traditional project Lexicon. The steep and blank headwall of Pavey Ark’s East Gully in the Lake District has a smattering of tiny holds and notably no protection. A successful ascent would rank it as one of the most significant. Such a stunning line has not gone unnoticed from the UK’s other trad masters as entertaining cameos from Dave MacLeod and Steve McClure bring additional depth and credibility. We also witness one of the biggest lead falls ever captured, scary stuff! The hardest moves wait at the very top of the line: dropping these low percentage moves means a potential 80ft fall into the lower vertical section. Strap in for the ride in a film that packs a classic cocktail of big lobs, hard climbing and the moment of truth as Neil completes ‘the climb of his life’.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m23">
+        <div class="thumb">
+          <span class="ph">Kjerag Solo</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/121644b1d7694f32bc63a5c9c80f18a3/Images/8a6b9f2863c7468db382b9bd49997478" alt="Kjerag Solo" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/121644b1d7694f32bc63a5c9c80f18a3/Content/b3a2be377ee447aeb0799132f675a02b/manifest.m3u8" data-player="https://britrockplus.com/player/23" data-title="Kjerag Solo" aria-label="Play Kjerag Solo"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Kjerag Solo</h3>
+          <p class="short">Pete takes a new direction with a free solo ascent of the imposing Kjerag big wall in Norway.</p>
+          <details><summary>Summary</summary><p>A climber that needs no introduction Pete Whittaker renowned for his world-class crack climbing and roped solo ascents. In this film we see Pete take a new direction with a free solo ascent of the imposing Kjerag (1082m) big wall in Norway. Pete has turned his attention to his now native big walls drawing on his life-long passion for soloing to test not only his own climbing skills, searching to answer the omnipresent question; ‘Can I actually climb?’. But also align the difficulties of wet and dirty rock that often come with the inclemant conditions. A successful ascent would be the first free solo of Kjerag, as well as, the first big wall ascent for Pete without the safety backup of a rope.<br>Take a front-seat ride in this innovatively filmed mini-epic as we join Pete fully committed move for move up the increasingly difficult and exposed line; all accompanied with a running commentary in Pete’s inimitable style.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m22">
+        <div class="thumb">
+          <span class="ph">Great Sheikhs</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/8b58e3cd77a14b8c9b5bbb0002ec0e52/Images/6f480d54623f429db4694f06c85d21a2" alt="Great Sheikhs" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/8b58e3cd77a14b8c9b5bbb0002ec0e52/Content/09fc67a91395402e9b8d48f50e4d772e/manifest.m3u8" data-player="https://britrockplus.com/player/22" data-title="Great Sheikhs" aria-label="Play Great Sheikhs"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Great Sheikhs</h3>
+          <p class="short">Join Leo Houlding on an exploratory climbing mission to the unclimbed desert towers of Saudi Arabia.</p>
+          <details><summary>Summary</summary><p>Join Britain’s top adventure climber Leo Houlding on an exploratory climbing mission to the unclimbed desert towers of Saudi Arabia, in the outstanding Wadi Al Disah region. Accompanied by tree climber Waldo Etherington this stunning journey is as entertaining as it is revealing where our duo encounter loose rock and deep sand during the first ascents of freestanding towers; ‘if this was Moab it would have been climbed in the 60s’. We are treated to the obligatory camel ride, perplexed locals and some good old fashioned dirt bagging as the voyage culminates with an audacious ascent of A’Atir, possibly the world’s tallest sandstone tower (330m). A film that glows with the stark beauty of the Arabian desert and the sincerity of a climber in his element.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m21">
+        <div class="thumb">
+          <span class="ph">Sea to Summit</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/f55cf9256aff4e899d899d550015f39d/Images/9a8eb645c7984780b434d4b408cc622b" alt="Sea to Summit" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/f55cf9256aff4e899d899d550015f39d/Content/47e7344944ea4649ac3ade026805958a/manifest.m3u8" data-player="https://britrockplus.com/player/21" data-title="Sea to Summit" aria-label="Play Sea to Summit"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Sea to Summit</h3>
+          <p class="short">Join the wild bunch on a stunning journey in a ground breaking adventure.</p>
+          <details><summary>Summary</summary><p>Join the wild bunch of Jacob Cook, Bronwyn Hodgins, Angela Vanwiemeersch, Kelsey Watts and Zack Goldberg-Poch, along with professional film maker Jaron Pham, as they take on a modern day expedition in Greenland kayaking 450km to access &#x27;Sanderson&#x27;s Hope&#x27; – an 800m wall rising straight from the Arctic Ocean. The perfect venue for a futuristic big wall free climb. It has never seen a free ascent and these guys intend to be the first. This will be a stunning journey mixing the human with the spectacular in a ground breaking adventure.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m20">
+        <div class="thumb">
+          <span class="ph">Queen Lines</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/bc0990e342cc402087fc29fe25cc64ce/Images/0110a3984a0b4c2598b61e07c6b1565b" alt="Queen Lines" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/bc0990e342cc402087fc29fe25cc64ce/Content/e0d78e99f66246919490b03af79cc9b8/manifest.m3u8" data-player="https://britrockplus.com/player/20" data-title="Queen Lines" aria-label="Play Queen Lines"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Queen Lines</h3>
+          <p class="short">This film follows the remarkable visit to the UK of US climber Anna Hazelnutt.</p>
+          <details><summary>Summary</summary><p>This film follows the remarkable visit to the UK of US climber Anna Hazelnutt. Anna teams up with Tom Randall and the sparks fly off the crag both in terms of climbing feats and the volume of fun thrown into each day. Entertaining and compelling Anna has only been trad climbing for 12 months yet under Tom&#x27;s stewardship they set themselves the challenge of a one-day ascent of the coveted Quarryman in North Wales and the first female repeat of the notorious Walk of Life at Dyers Lookout in Devon. Tom spots a rare ability in Anna and with his expert guidance blows the lid off a normal trad climbing progression. Join us on this breathtaking and hilarious quest, experience the highs and lows then witness some truly impressive climbing.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m14">
+        <div class="thumb">
+          <span class="ph">Ephemeral</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/64a553bf5ba34a81813b385da5125402/Images/d05c8d3dbdbc409c9c1b16be62651f9a" alt="Ephemeral" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/d08d024b1dd5487c9b2dddbd4f7a3176/Assets/64a553bf5ba34a81813b385da5125402/Content/33c539e4b9ff4a7e9928ea3c393a7346/manifest.m3u8" data-player="https://britrockplus.com/player/14" data-title="Ephemeral" aria-label="Play Ephemeral"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Ephemeral</h3>
+          <p class="short">Follow Guy Robertson &amp; Greg Boswell in their quest to seek out and climb new winter lines.</p>
+          <details><summary>Summary</summary><p>Ephemeral is a brand new production for 2022 by adventure filmmaker Alastair Lee. The Scottish winter climbing scene is something Alastair has always looked at with admiration and this season Alastair could no longer resist the challenge of making a production that captured the unique spirit and stunning environment of Scottish winter climbing. The results are now in and after one of the toughest projects he has ever undertaken the feeling amongst all the crew and climbers is that there is something pretty special in the can. The film follows top climbers Guy Robertson and Greg Boswell in their quest to seek out and climb new winter lines. As is well documented the 2021/22 season has been one of the worst/strangest in recent times. This has only added to the wild drama and resulted in some formations, that have acquired an almost mythical status, being bagged. Greg and Guy make first ascents of truly extraordinary features in some of the most impressive climbing arenas; An Teallach, Glen Coe, Ben Nevis, Craig Meagaidh, and the Cairngorms. The film tells the story from both sides of the lens and delivers a production value as yet unseen for Scottish winter climbing. Accompanying the multi-layered narrative and gripping action are interviews with Simon Richardson and Helen Rennard. The expert analysis delves into the rich climbing history, reflects on recent losses and gives the world stage context of what makes the Scottish winter so special.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m7">
+        <div class="thumb">
+          <span class="ph">Nose Job</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/e49e9808486540ddb52627e97bb1f060/Images/1f134e52fc144f5ba5c0e3e468ef6fc1" alt="Nose Job" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/07d2e97825a64d129994be54baf9febc/Assets/e49e9808486540ddb52627e97bb1f060/Content/8f4581c25f9743cbb9185d531c61dfff/manifest.m3u8" data-player="https://britrockplus.com/player/7" data-title="Nose Job" aria-label="Play Nose Job"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Nose Job</h3>
+          <p class="short">The unbelievable story of two retired competition climbers&amp;#x27; attempt to free the Nose.</p>
+          <details><summary>Summary</summary><p>The unbelievable story of two retired competition climbers&amp;#x27; attempt to free the Nose.&lt;br/&gt;&lt;br/&gt;Alex Waterhouse and Billy Ridal are two recently retired competition climbers that attempt to apply their indoor skills to real rock in the most extraordinary fashion. With almost no traditional climbing experience and barely a multi-pitch climb between them, our audacious duo set out to be the first Britons to make a free ascent of the world-famous Nose on El Capitan, Yosemite. The route was first climbed by Lynn Hill in 1993 and has subsequently only received eight ascents in 30 years. To say the odds were stacked against them would be an understatement comparable in size to the route itself. Hold tight as the action-packed movie tracks this most unlikely of journeys to success. Features contributions from Lynn Hill, Hans Florine and Leo Houlding.</p></details>
+        </div>
+      </article>
+      <article class="card" id="m6">
+        <div class="thumb">
+          <span class="ph">Climbing Blind</span>
+          <img loading="lazy" decoding="async" src="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/Asset/320d7bf4e5424a0faf00bdfb9326b78e/Images/cd5de68411e6471aaf84e6901171a5b4" alt="Climbing Blind" onerror="this.classList.add('failed')">
+          <button class="play" data-stream="https://d1rw4f878wcgpg.cloudfront.net/ff0b4dd0f83343079dd821facf62485a/User/Videos/07d2e97825a64d129994be54baf9febc/Assets/320d7bf4e5424a0faf00bdfb9326b78e/Content/7ddfed9259794729a273f66f48a7cebc/manifest.m3u8" data-player="https://britrockplus.com/player/6" data-title="Climbing Blind" aria-label="Play Climbing Blind"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+          <span class="badge free">Free preview</span>
+        </div>
+        <div class="body">
+          <h3>Climbing Blind</h3>
+          <p class="short">The incredible story of the first blind lead of the Old Man of Hoy.</p>
+          <details><summary>Summary</summary><p>The incredible story of the first blind lead of the Old Man of Hoy&lt;br/&gt;&lt;br/&gt;Jesse Dufton was born with 20% central vision. At four years of age Jesse was diagnosed with Retinitis Pigmentosa: a rare genetic disease that breaks down the retinas&amp;#x27; cells. At aged 20 Jesse could no longer read, by the time he was 30 his vision was reduced to just light perception with around 1 or 2 % field of view.&lt;br/&gt;&lt;br/&gt;As a life long climber, Jesse flies in the face of adversity training for world cup events and leading traditional rock climbs with his sight guide and fiancee Molly. As his sight degenerates his climbing continues to make remarkable progress. Despite his devastating condition Jesse only takes on bigger challenges by attempting to be the first blind person to make a &amp;#x27;non-sight&amp;#x27; lead of the iconic Old Man of Hoy sea stack in Scotland.&lt;br/&gt;&lt;br/&gt;This engrossing documentary will make you laugh and cry as it delivers not just a truly gripping climbing story but a tale of human endeavor and attitude the world can take inspiration from. Includes cameo appearances from the likes of Neil Gresham, Leo Houlding, and Pete Whittaker.</p></details>
+        </div>
+      </article>
+      </div>
+    </section>
+</main>
+
+<script>
+  document.querySelectorAll('.play').forEach(btn => {
+    btn.addEventListener('click', () => {
+      window.open(btn.dataset.player, '_blank', 'noopener');
+    });
+  });
+
+  // ---- Watched tracking (persisted in localStorage) ----
+  const STORE_KEY = 'britrock-watched';
+  const main = document.querySelector('main');
+  const cards = [...document.querySelectorAll('.card')];
+  const stats = document.getElementById('stats');
+
+  function loadWatched() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); }
+    catch { return {}; }
+  }
+  function saveWatched(state) {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch {}
+  }
+
+  let watched = loadWatched();
+
+  function updateStats() {
+    const total = cards.length;
+    const seen = cards.filter(c => c.classList.contains('watched')).length;
+    stats.textContent = `${seen} / ${total} watched`;
+  }
+
+  cards.forEach(card => {
+    const id = card.id;
+    const isWatched = !!watched[id];
+    card.classList.toggle('watched', isWatched);
+
+    const label = document.createElement('label');
+    label.className = 'watch-toggle';
+    label.title = 'Mark as watched';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = isWatched;
+    label.append(cb);
+    // keep clicks on the toggle from bubbling to anything else
+    label.addEventListener('click', e => e.stopPropagation());
+    cb.addEventListener('change', () => {
+      card.classList.toggle('watched', cb.checked);
+      if (cb.checked) watched[id] = true; else delete watched[id];
+      saveWatched(watched);
+      updateStats();
+    });
+    card.querySelector('.thumb').appendChild(label);
+  });
+
+  // ---- Filter buttons ----
+  document.querySelectorAll('.filterbar .fbtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filterbar .fbtn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      main.dataset.filter = btn.dataset.filter;
+    });
+  });
+
+  updateStats();
+</script>
+</body>
+</html>
